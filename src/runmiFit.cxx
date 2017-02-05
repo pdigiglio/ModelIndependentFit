@@ -18,6 +18,22 @@
 #include <iostream>
 #include <memory>
 
+std::unique_ptr<Fit> create_fit(const char* file_path, const char* model_name) {
+    // Create a model to fit the data.
+    const std::shared_ptr<FitModel> fit_model(make_fit_model());
+    assert(fit_model->freeAmplitudes().size() == 22);
+
+    // Create the integrator.
+    constexpr unsigned integration_points     = 2e4;
+    auto integrator(std::make_unique<FitIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
+
+    auto root_file_handler(std::make_unique<RootFileHandler>(file_path, model_name));
+    auto root_fit_data(std::make_unique<RootFitData>(std::move(root_file_handler), fit_model));
+
+    // Create the BAT model for fitting the data.
+    return std::make_unique<Fit>(fit_model, std::move(root_fit_data), std::move(integrator));
+}
+
 int main(int argc, const char *argv[])
 {
     if (argc != 3) {
@@ -28,28 +44,11 @@ int main(int argc, const char *argv[])
         std::abort();
     }
 
+    const auto fit = create_fit(argv[1], argv[2]);
+
 //    // set nicer style for drawing than the ROOT default
 //    BCAux::SetStyle();
 
-    // -- Workflow example ---------------------------------------
-    // Create a model to fit the data.
-    const std::shared_ptr<FitModel> fit_model(make_fit_model());
-    assert(fit_model->freeAmplitudes().size() == 22);
-
-//    // Create the integrator.
-    constexpr unsigned integration_points     = 2e4;
-    auto integrator(std::make_unique<FitIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
-//
-//    // TODO Create the container for the fit data.
-//    // Load data
-//    auto&& root_file_handler(std::make_unique<RootFileHandler>(argv[1], argv[2]));
-    auto root_fit_data(std::make_unique<RootFitData>(
-                std::make_unique<RootFileHandler>(argv[1], argv[2]),
-                fit_model));
-
-    // Create the BAT model for fitting the data.
-    auto fit(std::make_unique<Fit>(fit_model, std::move(root_fit_data), std::move(integrator)));
-//    // -----------------------------------------------------------
 
     return 0;
 }
