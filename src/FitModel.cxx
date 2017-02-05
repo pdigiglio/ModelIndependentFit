@@ -37,7 +37,7 @@
 FitModel::FitModel(std::unique_ptr<yap::Model> m) :
     Model_(std::move(m)),
     MassAxes_(model()->massAxes()),
-    MassRanges_(yap::squared(mass_range(FitModel::Dmass(), axes(), model()->finalStateParticles()))),
+    MassRanges_(yap::squared(mass_range(FitModel::Dmass(), massAxes(), model()->finalStateParticles()))),
     FreeAmplitudes_()
 {
     // Check if the model is valid
@@ -48,6 +48,14 @@ FitModel::FitModel(std::unique_ptr<yap::Model> m) :
     model()->lock();
     if (!model()->consistent())
         throw yap::exceptions::Exception("Model inconsistent", "FitModel::FitModel");
+
+    // Check if the mass axes are not empty.
+    if (massAxes().empty())
+        throw yap::exceptions::Exception("Mass axes empty", "FitModel::FitModel");
+
+    // Check if the mass ranges are not empty.
+    if (massRanges().empty())
+        throw yap::exceptions::Exception("Mass ranges empty", "FitModel::FitModel");
 
     // Copy the non-fixed FreeAmplitude's in the internal storage.
     const auto model_fas = yap::free_amplitudes(*model());

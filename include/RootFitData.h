@@ -27,7 +27,7 @@ public:
     /// @param input_rfh The input ROOT-file wrapper.
     /// @param fit_model The model to fit to the data.
     RootFitData(std::unique_ptr<RootFileHandler> rfh,
-                         std::shared_ptr<const FitModel> fit_model);
+                std::shared_ptr<const FitModel> fit_model);
 
     /// Returns the fit data.
     const yap::DataSet& data() const noexcept
@@ -40,6 +40,12 @@ public:
     /// Access the fit data partitions.
     yap::DataPartitionVector& partitions() noexcept
     { return Partitions_; }
+
+    /// Returns the model name.
+    const std::string modelName() const noexcept;
+
+    /// Returns the path where the input data file is contained.
+    const std::string path() const noexcept;
 
 private:
 

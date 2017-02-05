@@ -85,8 +85,8 @@ public:
 //    const std::string pdfPlotsOutputName() const noexcept
 //    { return OutputPath_ + GetSafeName() + "_plots.pdf"; }
 //
-//    /// Returns the name of the log file.
-//    const std::string logFileName() const noexcept
+    /// Returns the name of the log file.
+    const std::string logFileName() const noexcept;
 //    { return OutputPath_ + GetSafeName() + "_log.txt"; }
 
 //    /// Access the model.

@@ -37,7 +37,7 @@ public:
     { return Model_; }
 
     /// Return the default mass axes.
-    const yap::MassAxes& axes() const noexcept
+    const yap::MassAxes& massAxes() const noexcept
     { return MassAxes_; }
 
     /// Returns the mass ranges.

@@ -38,7 +38,7 @@ FitIntegrator::FitIntegrator(std::shared_ptr<const FitModel> fit_model,
 //    /// This doesn't work if the integrator is instanciated as constant
 //    const_cast<FitIntegrator*>(this)->pointGenerator() = std::bind(yap::phsp<RandomEngine>, std::cref(*FitModel_->model()), FitModel::Dmass(), FitModel_->massRanges(), RandomEngine_, std::numeric_limits<unsigned>::max());
     PointGenerator_ = [&](){
-        return yap::phsp(*FitModel_->model(), FitModel::Dmass(), FitModel_->axes(), FitModel_->massRanges(), RandomEngine_, std::numeric_limits<unsigned>::max());
+        return yap::phsp(*FitModel_->model(), FitModel::Dmass(), FitModel_->massAxes(), FitModel_->massRanges(), RandomEngine_, std::numeric_limits<unsigned>::max());
     };
 
 }

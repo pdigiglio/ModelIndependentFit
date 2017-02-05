@@ -12,8 +12,9 @@
 #ifndef  ROOT_FILE_HANDLER_H
 #define  ROOT_FILE_HANDLER_H
 
+#include "fwd/TTreeHandler.h"
+
 #include <TFile.h>
-#include <TTree.h>
 
 #include <memory>
 #include <string>
@@ -27,21 +28,21 @@ public:
     /// @param model_name The name one wants to give to the model.
     explicit RootFileHandler(const char* file_name, const char* model_name = "");
 
+    /// Destructor.
+    ~RootFileHandler();
+
     /// Returns the model name.
     const std::string& modelName() const noexcept
     { return ModelName_; }
 
     /// Returns the name of the input .root file.
-    const std::string& rootFileName() const noexcept
-    { return RootFileName_; }
+    const std::string& fileName() const noexcept
+    { return FileName_; }
 
-    const std::string fitName() const noexcept
-    { return modelName() + "_fit"; }
-
-    const std::unique_ptr<TTree>& parameterTree() const noexcept
+    const std::unique_ptr<TTreeHandler>& parameterTree() const noexcept
     { return ParameterTree_; }
 
-    const std::unique_ptr<TTree>& mcmcTree() const noexcept
+    const std::unique_ptr<TTreeHandler>& mcmcTree() const noexcept
     { return MCMCTree_; }
 
     /// Return the name of the data TTree.
@@ -52,20 +53,30 @@ public:
     const std::string parameterTreeName() const
     { return "D3PI_" + ModelName_ + "_RESONANCE_parameters"; }
 
+    /// Return the ROOT file.
+    const std::unique_ptr<TFile>& file() const noexcept
+    { return File_; }
+
+    /// Return the path where the input .root file is contained.
+    const std::string& path() const noexcept
+    { return Path_; }
 private:
+    /// The path where the input .root file is contained.
+    const std::string Path_ = "output/";
+
     const std::string ModelName_;
 
     /// The input file name.
-    const std::string RootFileName_;
+    const std::string FileName_;
 
     /// Pointer to the input .root data file.
-    std::unique_ptr<TFile> RootFile_;
+    std::unique_ptr<TFile> File_;
 
     /// Pointer to the Monte-Carlo data generated throguh Markov chains.
-    std::unique_ptr<TTree> MCMCTree_;
+    std::unique_ptr<TTreeHandler> MCMCTree_;
 
     /// (?)
-    std::unique_ptr<TTree> ParameterTree_;
+    std::unique_ptr<TTreeHandler> ParameterTree_;
 };
 
 #endif

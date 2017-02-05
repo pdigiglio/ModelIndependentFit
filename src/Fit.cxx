@@ -130,6 +130,9 @@ Fit::Fit(std::shared_ptr<FitModel> fit_model,
     }
 }
 
+const std::string Fit::logFileName() const noexcept
+{ return Data_->path() + Data_->modelName() + "_log.txt"; }
+
 Fit::~Fit() = default;
 
 // ---------------------------------------------------------
