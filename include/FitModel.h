@@ -26,11 +26,17 @@
 class FitModel {
 public:
     /// @brief Constructor.
-    /// @param model The YAP model of the decay.
-    explicit FitModel(std::unique_ptr<yap::Model> model);
+    /// @param model      The YAP model of the decay.
+    /// @param model_name The (optional) name of the model.
+    explicit FitModel(std::unique_ptr<yap::Model> model,
+                      const std::string model_name = "");
 
     /// _Default_ destructor.
     ~FitModel();
+
+    /// Returns the model name.
+    const std::string& name() const noexcept
+    { return Name_; }
 
     /// Returns the YAP model.
     const std::unique_ptr<yap::Model>& model() const noexcept
@@ -57,6 +63,10 @@ public:
     { return 1.8691; }
 
 private:
+
+    /// The (optional) name of the model.
+    const std::string Name_;
+
     /// The decay fit model.
     const std::unique_ptr<yap::Model> Model_;
 
@@ -78,8 +88,9 @@ template <typename T>
 inline std::unique_ptr<yap::Model> make_model()
 { return std::make_unique<yap::Model>(std::make_unique<T>()); }
 
-/// Creates a new FitModel instance.
-std::unique_ptr<FitModel> make_fit_model();
+/// @brief Creates a new FitModel instance.
+/// @param model_name The name of the model.
+std::unique_ptr<FitModel> make_fit_model(const std::string& model_name);
 
 /// Attempts an initial guess on the model parameters.
 const std::vector<double> guess_parameters(const Fit& m);

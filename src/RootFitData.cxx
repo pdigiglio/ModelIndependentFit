@@ -132,8 +132,5 @@ RootFitData::RootFitData(std::unique_ptr<RootFileHandler> rfh,
     Partitions_ = yap::DataPartitionBlock::create(Data_, available_threads());
 }
 
-const std::string RootFitData::modelName() const noexcept
-{ return RootFile_->modelName(); }
-
 const std::string RootFitData::path() const noexcept
 { return RootFile_->path(); }

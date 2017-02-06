@@ -34,7 +34,9 @@
 #include <memory>
 #include <vector>
 
-FitModel::FitModel(std::unique_ptr<yap::Model> m) :
+FitModel::FitModel(std::unique_ptr<yap::Model> m,
+                   const std::string model_name) :
+    Name_(model_name),
     Model_(std::move(m)),
     MassAxes_(model()->massAxes()),
     MassRanges_(yap::squared(mass_range(FitModel::Dmass(), massAxes(), model()->finalStateParticles()))),
@@ -312,6 +314,6 @@ void write_fit_result_to_file(Fit& m) {
 }
 
 
-std::unique_ptr<FitModel> make_fit_model() {
-    return std::make_unique<FitModel>(d3pi_binned());
+std::unique_ptr<FitModel> make_fit_model(const std::string& model_name) {
+    return std::make_unique<FitModel>(d3pi_binned(), model_name);
 }

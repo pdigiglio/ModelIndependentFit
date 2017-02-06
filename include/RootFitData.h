@@ -41,9 +41,6 @@ public:
     yap::DataPartitionVector& partitions() noexcept
     { return Partitions_; }
 
-    /// Returns the model name.
-    const std::string modelName() const noexcept;
-
     /// Returns the path where the input data file is contained.
     const std::string path() const noexcept;
 

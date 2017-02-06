@@ -22,11 +22,9 @@
 #include <memory>
 
 RootFileHandler::RootFileHandler(const char* file_path,
-                                 const char* file_name,
-                                 const char* model_name) :
+                                 const char* file_name) :
     Path_(file_path),
     FileName_(Path_ + static_cast<std::string>(file_name)),
-    ModelName_(model_name),
     File_(TFile::Open((FileName_).data(), "READ")),
     MCMCTree_(std::make_unique<TTreeHandler>()),
     ParameterTree_(std::make_unique<TTreeHandler>())

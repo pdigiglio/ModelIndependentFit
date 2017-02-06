@@ -26,16 +26,11 @@ public:
     /// @brief Constructor.
     /// @param file_path  The path of the input .root file.
     /// @param file_name  The input .root file name (relative to the path).
-    /// @param model_name The name one wants to give to the model.
     explicit RootFileHandler(const char* file_path,
-                             const char* file_name,
-                             const char* model_name = ""); 
+                             const char* file_name); 
+
     /// Destructor.
     ~RootFileHandler();
-
-    /// Returns the model name.
-    const std::string& modelName() const noexcept
-    { return ModelName_; }
 
     /// Returns the name of the input .root file.
     const std::string& fileName() const noexcept
@@ -47,13 +42,17 @@ public:
     const std::unique_ptr<TTreeHandler>& mcmcTree() const noexcept
     { return MCMCTree_; }
 
-    /// Return the name of the data TTree.
+    /// @brief Return the name of the data TTree.
+    /// @todo try not to hard-code branch names.
     const std::string mcmcTreeName() const
-    { return "D3PI_" + ModelName_ + "_RESONANCE_mcmc"; }
+    { return "D3PI_f0_rho0_RESONANCE_mcmc"; }
+//    { return "D3PI_" + ModelName_ + "_RESONANCE_mcmc"; }
 
-    /// Return the name of the parameter TTree.
+    /// @brief Return the name of the parameter TTree.
+    /// @todo try not to hard-code branch names.
     const std::string parameterTreeName() const
-    { return "D3PI_" + ModelName_ + "_RESONANCE_parameters"; }
+    { return "D3PI_f0_rho0_RESONANCE_parameters"; }
+//    { return "D3PI_" + ModelName_ + "_RESONANCE_parameters"; }
 
     /// Return the ROOT file.
     const std::unique_ptr<TFile>& file() const noexcept
@@ -67,9 +66,6 @@ private:
     const std::string Path_;
     /// The input file name.
     const std::string FileName_;
-
-    /// The (optional) name of the model.
-    const std::string ModelName_;
 
     /// Pointer to the input .root data file.
     std::unique_ptr<TFile> File_;
