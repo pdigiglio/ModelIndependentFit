@@ -60,7 +60,7 @@ public:
 
     /// Returns the mass of the D+.
     static constexpr const double Dmass() noexcept
-    { return 1.8691; }
+    { return 1.86961; }
 
 private:
 
