@@ -24,10 +24,12 @@
 class RootFileHandler {
 public:
     /// @brief Constructor.
-    /// @param file_name  The name of the input .root file.
+    /// @param file_path  The path of the input .root file.
+    /// @param file_name  The input .root file name (relative to the path).
     /// @param model_name The name one wants to give to the model.
-    explicit RootFileHandler(const char* file_name, const char* model_name = "");
-
+    explicit RootFileHandler(const char* file_path,
+                             const char* file_name,
+                             const char* model_name = ""); 
     /// Destructor.
     ~RootFileHandler();
 
@@ -62,12 +64,12 @@ public:
     { return Path_; }
 private:
     /// The path where the input .root file is contained.
-    const std::string Path_ = "output/";
-
-    const std::string ModelName_;
-
+    const std::string Path_;
     /// The input file name.
     const std::string FileName_;
+
+    /// The (optional) name of the model.
+    const std::string ModelName_;
 
     /// Pointer to the input .root data file.
     std::unique_ptr<TFile> File_;
