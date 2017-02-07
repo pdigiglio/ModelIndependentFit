@@ -19,11 +19,6 @@
 #include <memory>
 #include <string>
 
-// This is a Fit header file.
-// Model source code is located in file miFit/Fit.cxx
-
-// ---------------------------------------------------------
-
 /// @brief The class that will perform the fit.
 class Fit final : public BCModel {
 public:
@@ -34,30 +29,6 @@ public:
     explicit Fit(std::shared_ptr<FitModel> fit_model,
                  std::unique_ptr<RootFitData> fit_data,
                  std::unique_ptr<FitIntegrator> integrator);
-
-//    /// @brief Constructor.
-//    explicit Fit(const std::string& name,
-//                   std::unique_ptr<yap::Model> model,
-//                   const unsigned integration_points,
-//                   const unsigned integration_threads,
-//                   const unsigned integration_batch_size) ;
-//    //
-//    /// Function for generating new points for integration.
-//    using Generator = std::function<std::vector<yap::FourVector<double> >()>;
-//    Generator& integrationPointGenerator() noexcept
-//    { return IntegrationPointGenerator_; }
-//
-//    const unsigned numberOfIntegrationPoints() const noexcept
-//    { return NumberOfIntegrationPoints_; }
-//
-//    const unsigned integrationBatchSize() const noexcept
-//    { return IntegrationBatchSize_; }
-//
-//    const unsigned numberOfIntegrationThreads() const noexcept
-//    { return NumberOfIntegrationThreads_; }
-//
-//    /// _Default_ destructor.
-//    ~Fit() final = default;
 
     /// _Default_ destructor.
     ~Fit();
@@ -78,30 +49,11 @@ public:
     /// @param value The value to fix the FreeAmplitude's component to.
     void fixComponent(const std::shared_ptr<yap::FreeAmplitude>& fa, const unsigned char j, const double value);
 
-//    void setComponentPrior(const std::shared_ptr<yap::FreeAmplitude>& fa, const unsigned char j, BCPrior* prior);
-//    void setPriors(const std::shared_ptr<yap::FreeAmplitude>& fa, BCPrior* first_component_prior, BCPrior* second_component_prior);
-
-//    /// Returns the name of the pdf file where the plots are drawn.
-//    const std::string pdfPlotsOutputName() const noexcept
-//    { return OutputPath_ + GetSafeName() + "_plots.pdf"; }
-//
     /// Returns the name of the log file.
     const std::string logFileName() const noexcept;
-//    { return OutputPath_ + GetSafeName() + "_log.txt"; }
 
     /// Access the YAP model.
     const std::unique_ptr<yap::Model>& model() const noexcept;
-//    { return Model_; }
-
-//    yap::DataSet& fitData() noexcept
-//    { return FitData_; }
-
-//    const yap::MassAxes& axes() const noexcept
-//    { return Axes_; }
-
-//    yap::DataPartitionVector& fitPartitions() noexcept
-//    { return FitPartitions_; }
-
 
     /// @brief Sets the ranges of a FreeAmplitude.
     /// @param fa        The FreeAmplitude whose range to fix.
@@ -110,9 +62,6 @@ public:
     /// @param second_low  The low boundary of the second component.
     /// @param second_high The high boundary of the second component.
     void setRanges(const std::shared_ptr<yap::FreeAmplitude>& fa, double first_low, double first_high, double second_low, double second_high);
-
-//    const std::vector<double>& massPartition() const noexcept
-//    { return MassPartition_; }
 
 private:
 
@@ -125,61 +74,13 @@ private:
     /// The model integrator.
     const std::unique_ptr<FitIntegrator> Integrator_;
 
-//    /// Directory where the fitting output is located.
-//    const std::string OutputPath_ = "output/";
-//
-//    /// The YAP model to fix the data.
-//    const std::shared_ptr<yap::Model> Model_;
-//
-////    /// @brief Free amplitudes of the model.
-////    /// @attention By changing these, the values of the free amplitudes
-////    /// in the model will also change.
-////    yap::FreeAmplitudeVector FreeAmplitudes_;
-//
-//    /// Data to fit the model to.
-//    yap::DataSet FitData_;
-//
-//    /// Partitioning of the fit data.
-//    yap::DataPartitionVector FitPartitions_;
-//
-////    /// Ranges for the masses.
-////    yap::MassAxes Axes_;
-//
-////    /// Point generator for the integration.
-////    Generator IntegrationPointGenerator_;
-////
-////    /// The number of integration points (?)
-////    unsigned NumberOfIntegrationPoints_;
-////    /// (?)
-////    unsigned IntegrationBatchSize_;
-////    /// (?)
-////    unsigned NumberOfIntegrationThreads_;
-//
-////    /// Integral result.
-////    yap::ModelIntegral       Integral_;
-////    yap::DataSet             IntegralData_;
-////    yap::DataPartitionVector IntegralDataPartitions_;
-//
-//    const std::vector<double> MassPartition_;
-//
-//    std::vector<double> OldParameters_;
-
     /// @brief Sets the free amplitudes to the values of _p_.
     /// @details This is the function where one can interpret the parameters
     /// as they want through the mathematical function one uses to assign them
     /// to the free amplitudes.
     /// @param p The new value of the free amplitudes.
     void setParameters(const std::vector<double>& p);
-
-//    /// @brief Evaluates the integral of the model.
-//    void integrate();
 };
-// ---------------------------------------------------------
-
-///// Loads input data to fit.
-//size_t load_data(yap::DataSet& data, const yap::Model& M, const yap::MassAxes& A,
-//                 double initial_mass, TTree& t_mcmc, int N, int lag);
-
 
 /// @brief Helper function to create a Fit class.
 /// @param file_path  The directory of the input ROOT file.

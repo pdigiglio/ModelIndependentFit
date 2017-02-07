@@ -11,11 +11,6 @@
 #include "RootFileHandler.h"
 #include "RootFitData.h"
 
-//#include "model-independent/d3pi_one_resonance.h"
-#include "Exceptions.h"
-#include "FreeAmplitude.h"
-#include "Model.h"
-
 #include <AmplitudeBasis.h>
 #include <Attributes.h>
 #include <BreitWigner.h>
@@ -23,6 +18,7 @@
 #include <DecayChannel.h>
 #include <DecayTree.h>
 #include <DecayingParticle.h>
+#include <Exceptions.h>
 #include <FinalStateParticle.h>
 #include <Flatte.h>
 #include <FourMomenta.h>
@@ -47,24 +43,6 @@
 #include <VariableStatus.h>
 #include <ZemachFormalism.h>
 #include <logging.h>
-#include <BreitWigner.h>
-#include <DataSet.h>
-#include <DecayChannel.h>
-#include <DecayingParticle.h>
-#include <DecayTree.h>
-#include <FourMomenta.h>
-#include <FourVector.h>
-#include <FreeAmplitude.h>
-#include <ImportanceSampler.h>
-#include <logging.h>
-#include <MassAxes.h>
-#include <Model.h>
-#include <ModelIntegral.h>
-#include <Parameter.h>
-#include <ParticleCombination.h>
-#include <PDL.h>
-#include <SpinAmplitude.h>
-#include <VariableStatus.h>
 
 #include <cassert>
 #include <iterator>
@@ -86,24 +64,6 @@ const std::string free_amplitude_name(const yap::FreeAmplitude& fa) noexcept {
         + " S = " + yap::spin_to_string(fa.spinAmplitude()->twoS());
 }
 
-// ---------------------------------------------------------
-//Fit::Fit(const std::string& name,
-//             std::unique_ptr<yap::Model> m,
-//             const unsigned integration_points,
-//             const unsigned integration_threads,
-//             const unsigned integration_batch_size) :
-//    BCModel(name),
-//    Model_(std::move(m)),
-//    FitData_(model()->createDataSet()),
-//    FitPartitions_(1, &FitData_), // 1 partition
-//    Axes_(model()->massAxes()), // Use the default axes.
-//    NumberOfIntegrationPoints_(integration_points),
-//    NumberOfIntegrationThreads_(integration_threads),
-//    IntegrationBatchSize_(integration_batch_size),
-//    Integral_(*model()),
-//    IntegralData_(model()->createDataSet()),
-//    IntegralDataPartitions_(1, &IntegralData_)
-
 Fit::Fit(std::shared_ptr<FitModel> fit_model,
          std::unique_ptr<RootFitData> fit_data,
          std::unique_ptr<FitIntegrator> integrator):
@@ -116,6 +76,9 @@ Fit::Fit(std::shared_ptr<FitModel> fit_model,
         const auto fa_name = free_amplitude_name(*fa);
 
         const double upper_amp_range = 3. * abs(fa->value());
+#ifndef NDEBUG
+        std::cout << "Add parameter for decay mode " << fa_name << std::endl;
+#endif
         AddParameter("amp(" + fa_name + ")", 0., upper_amp_range);
         GetParameters().Back().SetPriorConstant();
 
@@ -151,6 +114,9 @@ double Fit::LogLikelihood(const std::vector<double>& pars)
 
     // Evaluates the log-likelihood.
     const auto L = yap::sum_of_log_intensity(*FitModel_->model(), Data_->partitions(), model_integral);
+#ifndef NDEBUG
+    std::cout << "L = " << L << " log(I) = " << model_integral << std::endl;
+#endif
     FitModel_->model()->setParameterFlagsToUnchanged();
 
     return L;
@@ -169,15 +135,6 @@ void Fit::setParameters(const std::vector<double>& p) {
     // Evaluate the integral of the model (with the new parameters).
     Integrator_->integrate();
 }
-
-//void Fit::integrate() {
-//    assert(IntegrationPointGenerator_);
-//    yap::ImportanceSampler::calculate(Integral_,
-//                                      integrationPointGenerator(),
-//                                      numberOfIntegrationPoints(),
-//                                      integrationBatchSize(),
-//                                      numberOfIntegrationThreads());
-//}
 
 // ---------------------------------------------------------
 // double Fit::LogAPrioriProbability(const std::vector<double>& pars)
