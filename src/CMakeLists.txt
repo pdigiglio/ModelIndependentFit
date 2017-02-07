@@ -19,9 +19,14 @@ set(sources
 # Make output directory for the generated data
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
 
-# Make a link to the helper bash script
-add_custom_target(link-script
+# Make a link to the helper bash script to run the fitter.
+add_custom_target(link-run-script
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${PARENT_SOURCE_DIR}/fit.sh fit.sh)
+
+# Make a link to the script to plot the results.
+add_custom_target(link-plot-script
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PARENT_SOURCE_DIR}/plot_result.plt
+                                               ${CMAKE_CURRENT_BINARY_DIR}/output/plot_result.plt)
 
 set(programs runmiFit runMIGen)
 
@@ -31,4 +36,4 @@ foreach(program ${programs})
 endforeach(program)
 
 # Make sure the script is linked
-add_dependencies(runmiFit link-script)
+add_dependencies(runmiFit link-run-script link-plot-script)
