@@ -23,7 +23,7 @@
 
 RootFileHandler::RootFileHandler(const char* file_path,
                                  const char* file_name) :
-    Path_(file_path),
+    Path_(static_cast<std::string>(file_path) + "/"),
     FileName_(Path_ + static_cast<std::string>(file_name)),
     File_(TFile::Open((FileName_).data(), "READ")),
     MCMCTree_(std::make_unique<TTreeHandler>()),
