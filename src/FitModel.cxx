@@ -26,6 +26,8 @@
 #include <PDL.h>
 #include <FinalStateParticle.h>
 #include <DecayingParticle.h>
+// for to_string
+#include <DecayTree.h>
 
 #include <algorithm>
 #include <cassert>
@@ -70,23 +72,25 @@ FitModel::~FitModel() = default;
 
 // Helper function.
 // Splits a range _[min, max)_ into a partition with _bins_ number of bins.
-std::vector<double> partition_range(double min, const double max, const unsigned int bins)
-{
+std::vector<double> partition_range(double min, const double max, const unsigned int bins) {
+    assert(bins > 1);
     std::vector<double> partition;
     partition.reserve(bins + 1);
 
+    assert(min < max);
     const double step = (max - min) / bins;
-//    std::cout << "Bin width = " << step << std::endl;
     for (unsigned int i = 0; i < bins; ++i) {
         partition.push_back(min);
         min += step;
     }
+
     // insert last element
     partition.push_back(max);
 
     return partition;
 }
 
+// Helper function to create a partition with bins that have different widths.
 const std::vector<double> partition_mass_axis(double low_range, double up_range) {
     assert(low_range < up_range);
 
@@ -111,15 +115,55 @@ const std::vector<double> partition_mass_axis(double low_range, double up_range)
     // It should be sorted, but just to make sure...
     std::sort(p.begin(), p.end());
 
+#ifndef NDEBUG
     for (int i = 0; i < static_cast<int>(p.size()) - 1; ++ i)
         std::cout << "bin(" << std::setw(2) << std::right << i << ") = ["
                   << std::setw(8) << std::left << p[i] << " , " << p[i+1] << ")" << std::endl;
-
-//    // For debugging purpose
-//    for (const auto& bin : p)
-//        std::cout << bin << std::endl;
+#endif
 
     return p;
+}
+
+
+std::shared_ptr<const yap::FinalStateParticle> pi_plus(const std::unique_ptr<yap::Model>& m) {
+#ifndef NDEBUG
+    std::cout << " > Fetching pi+ from model" << std::endl;
+#endif
+    auto piPlus = yap::particle(*m, yap::is_named("pi+"));
+    assert(piPlus != nullptr);
+    return std::static_pointer_cast<const yap::FinalStateParticle>(piPlus);
+}
+
+const std::shared_ptr<const yap::FinalStateParticle> pi_minus(const std::unique_ptr<yap::Model>& m) {
+#ifndef NDEBUG
+    std::cout << " > Fetching pi- from model" << std::endl;
+#endif
+    auto piMinus = yap::particle(*m, yap::is_named("pi-"));
+    assert(piMinus != nullptr);
+    return std::static_pointer_cast<const yap::FinalStateParticle>(piMinus);
+}
+
+const std::shared_ptr<const yap::DecayingParticle> f_0(const std::unique_ptr<yap::Model>& m) {
+#ifndef NDEBUG
+    std::cout << " > Fetching f_0 from model" << std::endl;
+#endif
+    auto f_0 = yap::particle(*m, yap::is_named("f_0"));
+    assert(f_0 != nullptr);
+    return std::static_pointer_cast<const yap::DecayingParticle>(f_0);
+}
+
+// Helper function to get the partitioning of a mass range of a model.
+// Note: make sure that the model has been locked before!
+const std::vector<double> mass_partition_of_model(const std::unique_ptr<yap::Model>& data_model) {
+    assert(data_model != nullptr);
+    assert(data_model->locked());
+
+    // Get the final state particles to determine the phase-space region.
+    auto piPlus  = pi_plus(data_model);
+    auto piMinus = pi_minus(data_model);
+
+    return partition_mass_axis(std::abs(piPlus->mass() + piMinus->mass()),
+                               std::abs(FitModel::Dmass() - piPlus->mass()));
 }
 
 std::unique_ptr<yap::Model> d3pi_binned() {
@@ -131,87 +175,168 @@ std::unique_ptr<yap::Model> d3pi_binned() {
 
     auto F = read_pdl_file((string)::getenv("YAPDIR") + "/data/evt.pdl");
 
-    // Final state particles.
-    auto piPlus  = FinalStateParticle::create(F[ 211]);
-    auto piMinus = FinalStateParticle::create(F[-211]);
-
-    M->setFinalState(piPlus, piMinus, piPlus);
-
     // Initial state particle.
     auto D = DecayingParticle::create(F["D+"], FitModel::radialSize());
 
-    // Partition the mass range.
+    // Final state particles.
+    auto piPlus  = FinalStateParticle::create(F[ 211]);
+    auto piMinus = FinalStateParticle::create(F[-211]);
+    M->setFinalState(piPlus, piMinus, piPlus);
+
     auto p = partition_mass_axis(std::abs(piPlus->mass() + piMinus->mass()),
                                  std::abs(F["D+"].mass() - piPlus->mass()));
 
     // The number of bins in the partition.
     const auto bins = p.size() - 1;
 
-    // vector of resonance pointers
+    // Add the mass bins to the fit model.
     for (unsigned i = 0; i < bins; ++i) {
         const auto resonance_name = "Bin(" + to_string(i) + ")";
         auto r = DecayingParticle::create(resonance_name, QuantumNumbers(0, 0), FitModel::radialSize(), make_shared<MassBin>(p[i], p[i+1]));
+        assert(r != nullptr);
+
         r->addWeakDecay(piMinus, piPlus);
         D->addWeakDecay(r, piPlus);
     }
 
     {
         // Add the rho0 resonance.
-        auto r = DecayingParticle::create(F["rho0"], FitModel::radialSize(), std::make_shared<BreitWigner>(F["rho0"]));
+        auto rho0 = F["rho0"];
+        auto r = DecayingParticle::create(rho0, FitModel::radialSize(), std::make_shared<BreitWigner>(rho0));
+        assert(r != nullptr);
+
         r->addWeakDecay(piMinus, piPlus);
         D->addWeakDecay(r, piPlus);
+
+        // ---------------------------------
+        // Add the initials state
+        M->addInitialState(D);
+        // Lock the model.
+        M->lock();
+        // ---------------------------------
 
         // Set this free amplitude as fixed.
         free_amplitude(*D, to(r))->variableStatus() = VariableStatus::fixed;
         // Fix the amplitude to its default value, which is the complex (1, 0).
     }
 
-    M->addInitialState(D);
-
     // Check that each bin has an associated free amplitude
     assert(bins == free_amplitudes(*M, from(D), is_not_fixed()).size());
 
-    constexpr double bw_M  = 1.;
-    constexpr double Gamma = .2;
-    auto bw = [=](double s) { return 1. / std::complex<double>(bw_M * bw_M - s, - bw_M * Gamma ); };
-    int i = 0;
-    for (const auto& fa : free_amplitudes(*M, from(*D), is_not_fixed())) {
+    // -----------------------------------------------------------------
+    // Use the model that generated the MC data to set the initial
+    // values for the free amplitudes of the bins.
+    {
+        const auto data_model = d3pi();
 
-        // evaluate BW on the low edge of the bin
-        const auto bw_value = bw(p[i] * p[i]);
-//        std::cout << "[" << p[i] << p[i + 1] << ") BW("
-//                  << p[i] * p[i] << ") = " << bw_value << std::endl;
+        const auto f0_BW = std::static_pointer_cast<const BreitWigner>(f_0(data_model)->massShape());
+        const double f0_mass  = f0_BW->mass()->value();
+        const double f0_width = f0_BW->width()->value();
+        auto bw = [=](double s) {
+            return 1. / std::complex<double>(f0_mass * f0_mass - s, - f0_mass * f0_width);
+        };
 
-        *fa = polar(abs(bw_value), arg(bw_value));
-//        std::cout << "i = " << i << std::endl;
-//        std::cout << to_string(*fa) << std::endl;
-
-        ++i;
+        int i = 0;
+        for (const auto& fa : free_amplitudes(*M, from(*D), is_not_fixed())) {
+            // Evaluate BW on the low edge of the bin.
+            const auto bin_low_edge = p[i];
+            const auto bw_value = bw(bin_low_edge * bin_low_edge);
+#ifndef NDEBUG
+            std::cout << "[" << p[i] << p[i + 1] << ") BW("
+                << p[i] * p[i] << ") = " << bw_value << std::endl;
+#endif
+            *fa = polar(abs(bw_value), arg(bw_value));
+            ++i;
+        }
     }
+    // -----------------------------------------------------------------
 
     return M;
 }
 
-const std::vector<double> guess_parameters(const Fit& m) {
-    auto F = yap::read_pdl_file((std::string)::getenv("YAPDIR") + "/data/evt.pdl");
-    auto r = yap::DecayingParticle::create(F["f_0"], 3., std::make_shared<yap::BreitWigner>(F["f_0"]));
-    auto w = std::static_pointer_cast<yap::BreitWigner>(r->massShape())->width();
-    w->setValue(4. * w->value());
-    // Breit-Wigner f_0 width
-    const auto BW_width = w->value();
-    // f_0 mass
-    const auto BW_mass  = std::static_pointer_cast<yap::BreitWigner>(r->massShape())->mass()->value();
-    auto bw = [=](const double s) { return 1. / std::complex<double>(BW_mass * BW_mass - s, -BW_mass * BW_width); };
+std::unique_ptr<yap::Model> d3pi()
+{
+    using namespace std;
+    using namespace yap;
+
+    // Create an empty model
+    auto M = make_model<ZemachFormalism>();
+
+	// Open the particle table.
+    auto F = read_pdl_file((string)::getenv("YAPDIR") + "/data/evt.pdl");
+
+    // Create the final state particles.
+    auto piPlus  = FinalStateParticle::create(F[ 211]);
+    auto piMinus = FinalStateParticle::create(F[-211]);
+
+	// Set the final state of the decay.
+    M->setFinalState(piPlus, piMinus, piPlus);
+
+    // Create the initial state particle.
+    auto D = DecayingParticle::create(F["D+"], FitModel::radialSize());
+
+	// Vector of the intermediate resonance names.
+	const std::vector<std::string> resonance_names({"f_0", "rho0"});
+	// Create the decay tree based on the previous resonance names.
+	for (const auto& rn : resonance_names) {
+		// Create the resonance.
+		auto r = DecayingParticle::create(F[rn], FitModel::radialSize(), make_shared<BreitWigner>(F[rn]));
+
+		// Set the resonance daughter particles.
+		r->addWeakDecay(piPlus, piMinus);
+
+		// Broaden the f_0's width.
+		if (rn == "f_0") {
+			auto w = static_pointer_cast<BreitWigner>(r->massShape())->width();
+			w->setValue(4. * w->value());
+//			std::cout << "Width " << w->value() << std::endl;
+		}
+
+		// Add the resonance to the D decay.
+		D->addWeakDecay(r, piPlus);
+		std::cout << rn << " resonance added to the D decay." << std::endl;
+	}
+
+	// Set the decay initial state.
+    M->addInitialState(D);
+    // Lock the model before returning it.
+    M->lock();
+
+    return M;
+}
+
+const std::vector<double> guess_parameters(Fit& m) {
+    // The model according to which the MC data were generated.
+    const auto data_model = d3pi();
+
+    // Get the parameters of the f0 resonance to reproduce its shape.
+    const auto f0_BW    = std::static_pointer_cast<const yap::BreitWigner>(f_0(data_model)->massShape());
+    const auto BW_width = f0_BW->width()->value();
+    const auto BW_mass  = f0_BW->mass()->value();
+
+    // Reproduce the mass shape of the f0 resonance.
+    auto bw = [=](const double s) {
+        return 1. / std::complex<double>(BW_mass * BW_mass - s, -BW_mass * BW_width);
+    };
+
+    // Get the mass-range partition.
+    const auto p = mass_partition_of_model(m.model());
+
     auto pi = []() { return std::acos(-1); };
 
-    
-    auto piPlus  = yap::FinalStateParticle::create(F[ 211]);
-    auto piMinus = yap::FinalStateParticle::create(F[-211]);
-    auto p = partition_mass_axis(std::abs(piPlus->mass() + piMinus->mass()),
-                                 std::abs(F["D+"].mass() - piPlus->mass()));
+//    // Find the fixed parameters.
+//    std::vector<int> fixed_parameter_indices;
+//    for (const auto& parameter : m.GetParameters())
+//        if (parameter.Fixed())
+//            fixed_parameter_indices.push_back(std::distance(std::begin(m.GetParameters()), parameter));
+//
+//    assert(fixed_parameter_indices.size() == 2);
+//    for (const auto& fpi : fixed_parameter_indices)
+//        assert(!(fpi < 0));
+//
+//    assert(false);
 
-    std::cout << " guess param partition : " << p.size() << std::endl;
-    //
+
     // The fixed value of the second bin's amplitude.
     const auto fixed_amplitude_idx = m.GetParameters().Size() - 2;
     const auto normalization = 1. / std::abs(bw(p[fixed_amplitude_idx/2] * p[fixed_amplitude_idx/2]));

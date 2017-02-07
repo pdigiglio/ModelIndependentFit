@@ -44,8 +44,8 @@ public:
 
     /// @brief Associates a ROOT branch (in the held TTree) with a variable.
     /// @param branch_name The name of the branch to read.
-    /// @param v           The variable to associate the branch to.
     /// @tparam T The data type contained in the branch.
+    /// @return A pointer to the data in the branch.
     template <typename T>
     std::unique_ptr<T> setBranchAddress(const std::string branch_name) const {
         assert(Tree_ != nullptr);
@@ -64,6 +64,10 @@ public:
         return std::unique_ptr<T>(tmp);
     }
 
+    /// @brief Associates a ROOT branch (in the held TTree) with a variable.
+    /// @param branch_name The name of the branch to read.
+    /// @param v           The variable to associate the branch to.
+    /// @tparam T The data type contained in the branch.
     template <typename T>
     void setBranchAddress(const std::string branch_name, T* v) const {
         assert(v != nullptr);

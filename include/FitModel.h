@@ -88,12 +88,16 @@ template <typename T>
 inline std::unique_ptr<yap::Model> make_model()
 { return std::make_unique<yap::Model>(std::make_unique<T>()); }
 
+/// @brief Helper function to set up the model for generating MC data.
+std::unique_ptr<yap::Model> d3pi();
+
 /// @brief Creates a new FitModel instance.
 /// @param model_name The name of the model.
 std::unique_ptr<FitModel> make_fit_model(const std::string& model_name);
 
-/// Attempts an initial guess on the model parameters.
-const std::vector<double> guess_parameters(const Fit& m);
+/// @brief Attempts an initial guess for the fit parameters based on the model used to generate MC data.
+/// @param m (What is it for?)
+const std::vector<double> guess_parameters(Fit& m);
 
 /// @brief Prints the fit parameters in an output text file.
 /// @param m The Fit model whose parameters to print.

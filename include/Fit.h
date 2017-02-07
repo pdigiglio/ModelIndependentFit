@@ -7,13 +7,14 @@
 #ifndef __BAT__MIFIT__H
 #define __BAT__MIFIT__H
 
-#include <BAT/BCModel.h>
-
 #include "fwd/FitIntegrator.h"
 #include "fwd/FitModel.h"
 #include "fwd/RootFitData.h"
 
 #include <fwd/FreeAmplitude.h>
+#include <fwd/Model.h>
+
+#include <BAT/BCModel.h>
 
 #include <memory>
 #include <string>
@@ -22,11 +23,10 @@
 // Model source code is located in file miFit/Fit.cxx
 
 // ---------------------------------------------------------
-class Fit final : public BCModel
-{
 
+/// @brief The class that will perform the fit.
+class Fit final : public BCModel {
 public:
-
     /// @brief Constructor.
     /// @param fit_model  The decay model.
     /// @param fit_data   The data to fit the model to.
@@ -89,8 +89,8 @@ public:
     const std::string logFileName() const noexcept;
 //    { return OutputPath_ + GetSafeName() + "_log.txt"; }
 
-//    /// Access the model.
-//    const std::shared_ptr<yap::Model>& model() const noexcept
+    /// Access the YAP model.
+    const std::unique_ptr<yap::Model>& model() const noexcept;
 //    { return Model_; }
 
 //    yap::DataSet& fitData() noexcept
@@ -179,5 +179,12 @@ private:
 ///// Loads input data to fit.
 //size_t load_data(yap::DataSet& data, const yap::Model& M, const yap::MassAxes& A,
 //                 double initial_mass, TTree& t_mcmc, int N, int lag);
+
+
+/// @brief Helper function to create a Fit class.
+/// @param file_path  The directory of the input ROOT file.
+/// @param file_name  The name of the input ROOT file.
+/// @param model_name The name of the model.
+std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name = "");
 
 #endif

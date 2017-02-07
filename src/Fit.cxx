@@ -133,6 +133,9 @@ Fit::Fit(std::shared_ptr<FitModel> fit_model,
 const std::string Fit::logFileName() const noexcept
 { return Data_->path() + FitModel_->name() + "_log.txt"; }
 
+const std::unique_ptr<yap::Model>& Fit::model() const noexcept
+{ return FitModel_->model(); }
+
 Fit::~Fit() = default;
 
 // ---------------------------------------------------------
@@ -242,4 +245,34 @@ void Fit::setRanges(const std::shared_ptr<yap::FreeAmplitude>& fa, double first_
     const auto i = free_amplitude_idx(fa, FitModel_);
     GetParameter(i + 0).SetLimits(first_low,  first_high);
     GetParameter(i + 1).SetLimits(second_low, second_high);
+}
+
+std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name) {
+    // Create a model to fit the data.
+    const std::shared_ptr<FitModel> fit_model(make_fit_model(model_name));
+    assert(fit_model->freeAmplitudes().size() == 22);
+
+    // Create the integrator.
+    constexpr unsigned integration_points     = 2e4;
+    auto integrator(std::make_unique<FitIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
+
+    auto root_file_handler(std::make_unique<RootFileHandler>(file_path, file_name));
+    auto root_fit_data(std::make_unique<RootFitData>(std::move(root_file_handler), fit_model));
+
+    // Create the BAT model for fitting the data.
+    auto fit(std::make_unique<Fit>(fit_model, std::move(root_fit_data), std::move(integrator)));
+
+    // Fix amplitudes in the fit
+    {
+        // Get the non-fixed free amplitudes.
+        const auto fas = fit_model->freeAmplitudes();
+        // Iterator to the last (valid) one.
+        const auto fa  = std::prev(std::end(fas), 1);
+
+        // Fix the last amplitude.
+        fit->fixComponent(*fa, 0, 1);
+        fit->fixComponent(*begin(fas), 1, 0);
+    }
+
+    return fit;
 }
