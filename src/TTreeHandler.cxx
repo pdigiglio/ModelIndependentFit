@@ -52,3 +52,13 @@ void TTreeHandler::associate(const std::unique_ptr<TFile>& root_file,
 
     std::cerr << "done!" << std::endl;
 }
+
+const Int_t TTreeHandler::getEntry(Long64_t entry) const {
+    const auto error_value = Tree_->GetEntry(entry);
+    if (error_value == 0)
+        throw yap::exceptions::Exception("Entry doesn't exist", "TTreeHandler::getEntry");
+    if (error_value == -1)
+        throw yap::exceptions::Exception("I/O error", "TTreeHandler::getEntry");
+
+    return error_value;
+}

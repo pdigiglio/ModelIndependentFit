@@ -38,19 +38,21 @@ inline void set_address(const yap::MassAxes::value_type& a,
     t_mcmc->setBranchAddress(indices_string(*a, "m2_", ""), &m2.back());
 }
 
-// TODO return a yap::DataSet
-size_t load_data(yap::DataSet& data, const yap::Model& M, const yap::MassAxes& A,
-                 double initial_mass, const std::unique_ptr<TTreeHandler>& t_mcmc, int N /* = -1*/, int lag  /*= -1*/ )
+// Helper function to load data from the ROOT file to the data set.
+yap::DataSet load_data( std::shared_ptr<const FitModel> fit_model,
+                       const std::unique_ptr<TTreeHandler>& t_mcmc,
+                       int N /* = -1*/,
+                       int lag  /*= -1*/)
 {
     // Make sure that the mass azes are not empty.
+    const auto A = fit_model->massAxes();
     assert(!A.empty());
 
     // Set the branch addresses.
     std::vector<double> m2;
     m2.reserve(A.size());
 
-//    std::for_each(A.begin(), A.end(), std::bind(set_address, std::placeholders::_1, std::ref(m2), std::ref(t_mcmc)));
-
+    // Link the ROOT branches to m2's entries.
     std::for_each(std::begin(A), std::end(A),
                   [&](const yap::MassAxes::value_type& a) { return set_address(a, m2, t_mcmc); });
 
@@ -64,22 +66,21 @@ size_t load_data(yap::DataSet& data, const yap::Model& M, const yap::MassAxes& A
 
     const auto n_entries = t_mcmc->entries();
 
-
-    if (N < 0)
-        // attempt to load all data
-        N = n_entries;
-
-    if (lag < 0)
-        // calculate lag
-        lag = n_entries / N;
+    // If N is negative, try to load all the data.
+    N   = ((N < 0)   ? n_entries : N);
+    // Evaluate the lag.
+    lag = ((lag < 0) ? (n_entries / N) : lag);
     lag = std::max(lag, 1);
 
-    int n_attempted = 0;
-    size_t old_size = data.size();
+    // Create an empty data set.
+    auto data_set = fit_model->model()->createDataSet();
+    // Store the current data size.
+    const size_t old_size = data_set.size();
 
     // Read input data and make sure that they're in the pase space.
+    int n_attempted = 0;
     for (long long n = 0; n < n_entries and n_attempted < N; ++n) {
-        t_mcmc->tree()->GetEntry(n);
+        t_mcmc->getEntry(n);
 
         if (*Phase <= 0)
             continue;
@@ -92,45 +93,45 @@ size_t load_data(yap::DataSet& data, const yap::Model& M, const yap::MassAxes& A
 
         ++n_attempted;
 
-        auto P = calculate_four_momenta(initial_mass, M, A, m2);
+        auto P = calculate_four_momenta(FitModel::Dmass(), *fit_model->model(), A, m2);
         if (P.empty()) {
             std::cout << "Point is out of phase space!" << std::endl;
 
+#ifndef NDEBUG
             // Print the vector
             std::cout << "( ";
             std::copy(std::begin(m2), std::end(m2), std::ostream_iterator<double>(std::cout, " "));
             std::cout << ")" << std::endl << std::endl;
+#endif
 
             continue;
         }
-        data.push_back(P);
+
+        data_set.push_back(P);
     }
 
-    if (data.empty())
-        LOG(INFO) << "No data loaded.";
-    else {
-        LOG(INFO) << "Loaded " << data.size() - old_size << " data points (" << ((data.size() - old_size) * data[0].bytes() * 1.e-6) << " MB)"
-                << " from a tree of size " << n_entries << ", with a lag of " << lag;
-        if (old_size != 0)
-            LOG(INFO) << "Total data size now " << data.size() << " points (" << (data.bytes() * 1.e-6) << " MB)";
-    }
+    // Check that some data were loaded.
+    assert(!data_set.empty());
 
-    if (int(data.size() - old_size) < N)
+    LOG(INFO) << "Loaded " << data_set.size() - old_size << " data points ("
+              << ((data_set.size() - old_size) * data_set[0].bytes() * 1.e-6) << " MB)"
+              << " from a tree of size " << n_entries << ", with a lag of " << lag;
+
+    if (int(data_set.size() - old_size) < N)
         LOG(WARNING) << "could not load as many data points as requested. Reduce the lag (or set it to -1 to automatically determine the lag).";
 
-    return data.size() - old_size;
+    return data_set;
 }
 
 RootFitData::RootFitData(std::unique_ptr<RootFileHandler> rfh,
                          std::shared_ptr<const FitModel> fit_model) :
     RootFile_(std::move(rfh)),
     FitModel_(fit_model),
-    Data_(FitModel_->model()->createDataSet()),
-    Partitions_(available_threads(), &Data_)
-{
-    load_data(Data_, *FitModel_->model(), FitModel_->massAxes(), FitModel::Dmass(), RootFile_->mcmcTree(), 1e4, -1);
-    Partitions_ = yap::DataPartitionBlock::create(Data_, available_threads());
-}
+    Data_(load_data(FitModel_, RootFile_->mcmcTree(), 1e4, -1)),
+    Partitions_(yap::DataPartitionBlock::create(Data_, available_threads()))
+//    Data_(FitModel_->model()->createDataSet()),
+//    Partitions_(available_threads(), &Data_)
+{}
 
 const std::string RootFitData::path() const noexcept
 { return RootFile_->path(); }

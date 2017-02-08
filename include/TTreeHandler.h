@@ -80,16 +80,23 @@ public:
                                              "TTreeHandler::setBranchAddress");
     }
 
+    /// Returns the entries in the tree.
     const Long64_t entries() const noexcept
     { return Tree_->GetEntries(); }
 
-    /// Return the internal tree (useful to call ROOT member functions).
-    const std::unique_ptr<TTree>& tree() const noexcept
-    { return Tree_; }
+    /// @brief Reads the branches of _entry_.
+    /// @param entry The entry to read.
+    /// @return The number of bytes read.
+    /// @throw yap::exceptions::Exception If the entry doesn't exist or an I/O error occurs.
+    const Int_t getEntry(Long64_t entry) const; 
 
 private:
     /// The ROOT TTree pointer.
     std::unique_ptr<TTree> Tree_;
+
+    /// Return the internal tree (useful to call ROOT member functions).
+    const std::unique_ptr<TTree>& tree() const noexcept
+    { return Tree_; }
 };
 
 #endif

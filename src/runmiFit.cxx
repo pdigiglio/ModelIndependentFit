@@ -41,8 +41,6 @@ int main(int argc, const char *argv[])
 
     BCLog::OutSummary("Test model created");
     
-    BCLog::OutSummary("Generating integration points on the fly");
-    
     //////////////////////////////
     // perform your analysis here
 
