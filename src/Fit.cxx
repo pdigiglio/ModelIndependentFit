@@ -11,49 +11,16 @@
 #include "RootFileHandler.h"
 #include "RootFitData.h"
 
-#include <AmplitudeBasis.h>
-#include <Attributes.h>
-#include <BreitWigner.h>
-#include <DataSet.h>
 #include <DecayChannel.h>
-#include <DecayTree.h>
-#include <DecayingParticle.h>
-#include <Exceptions.h>
-#include <FinalStateParticle.h>
-#include <Flatte.h>
-#include <FourMomenta.h>
-#include <FourVector.h>
 #include <FreeAmplitude.h>
-#include <HelicityFormalism.h>
-#include <ImportanceSampler.h>
-#include <MassAxes.h>
-#include <MassRange.h>
-#include <MathUtilities.h>
-#include <Model.h>
-#include <ModelIntegral.h>
-#include <PDL.h>
-#include <PHSP.h>
-#include <Parameter.h>
-#include <ParticleCombination.h>
-#include <ParticleTable.h>
-#include <QuantumNumbers.h>
-#include <RelativisticBreitWigner.h>
+#include <Spin.h>
 #include <SpinAmplitude.h>
-#include <SpinAmplitudeCache.h>
-#include <VariableStatus.h>
-#include <ZemachFormalism.h>
-#include <logging.h>
 
 #include <cassert>
 #include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include <TCanvas.h>
-#include <TF1.h>
-#include <TFile.h>
-#include <TTree.h>
 
 // #include <BAT/BCMath.h>
 
