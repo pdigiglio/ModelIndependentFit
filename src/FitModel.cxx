@@ -95,13 +95,13 @@ const std::vector<double> partition_mass_axis(double low_range, double up_range)
     assert(low_range < up_range);
 
     // partition
-    constexpr unsigned bins1 = 6;
+    constexpr unsigned bins1 = 8;
     auto p1 = partition_range(low_range, 0.823231, bins1);
 
-    constexpr unsigned bins2 = 10;
+    constexpr unsigned bins2 = 14;
     auto p2 = partition_range(0.823231, 1.18596, bins2);
 
-    constexpr unsigned bins3 = 6;
+    constexpr unsigned bins3 = 8;
     auto p3 = partition_range(1.18596, up_range, bins3);
 
     // number of bins
@@ -441,4 +441,21 @@ void write_fit_result_to_file(Fit& m) {
 
 std::unique_ptr<FitModel> make_fit_model(const std::string& model_name) {
     return std::make_unique<FitModel>(d3pi_binned(), model_name);
+}
+
+// Helper function to find the index of a FreeAmplitude in the parameter vector.
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                  const yap::FreeAmplitudeVector& fas) {
+    using namespace std;
+    const auto it = find(begin(fas), end(fas), fa);
+
+    if (it == end(fas))
+        throw yap::exceptions::Exception("FreeAmplitude not found", "free_amplitude_idx");
+
+    return distance(begin(fas), it);
+}
+
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                  const std::shared_ptr<const FitModel>& fit_model) {
+    return free_amplitude_index(fa, fit_model->freeAmplitudes());
 }

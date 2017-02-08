@@ -43,11 +43,15 @@ public:
     /// @param pars The vector of the FreeAmplitude's being fitted.
     void CalculateObservables(const std::vector<double> & pars) final;
 
-    /// @brief Fix a compoment of the FreeAmplitude _fa_.
+    /// @brief Fix the amplitude of the free amplitude _fa_.
     /// @param fa    The FreeAmplitude whose component one wants to fix.
-    /// @param j     The FreeAmplitude component.
-    /// @param value The value to fix the FreeAmplitude's component to.
-    void fixComponent(const std::shared_ptr<yap::FreeAmplitude>& fa, const unsigned char j, const double value);
+    /// @param value The value to fix the FreeAmplitude's amplitude to.
+    void fixAmplitude(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value);
+
+    /// @brief Fix the phase of the free amplitude _fa_.
+    /// @param fa    The FreeAmplitude whose component one wants to fix.
+    /// @param value The value to fix the FreeAmplitude's phase to.
+    void fixPhase(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value);
 
     /// Returns the name of the log file.
     const std::string logFileName() const noexcept;
@@ -55,13 +59,17 @@ public:
     /// Access the YAP model.
     const std::unique_ptr<yap::Model>& model() const noexcept;
 
-    /// @brief Sets the ranges of a FreeAmplitude.
-    /// @param fa        The FreeAmplitude whose range to fix.
-    /// @param first_low   The low boundary of the first component.
-    /// @param first_high  The high boundary of the first component.
-    /// @param second_low  The low boundary of the second component.
-    /// @param second_high The high boundary of the second component.
-    void setRanges(const std::shared_ptr<yap::FreeAmplitude>& fa, double first_low, double first_high, double second_low, double second_high);
+    /// @brief Sets the range of the parameter corresponding to the amplitude of _fa_.
+    /// @param fa   The free amplitude whose parameter value one wants to fix.
+    /// @param low  The lower boundary of the range.
+    /// @param high The upper boundary of the range.
+    void setAmplitudeRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, double low, double high);
+
+    /// @brief Sets the range of the parameter corresponding to the phase of _fa_.
+    /// @param fa   The free amplitude whose parameter value one wants to fix.
+    /// @param low  The lower boundary of the range.
+    /// @param high The upper boundary of the range.
+    void setPhaseRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, double low, double high);
 
 private:
 

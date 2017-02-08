@@ -143,22 +143,18 @@ void Fit::setParameters(const std::vector<double>& p) {
 //     // If you use built-in priors, leave this function commented out.
 // }
 
-// Helper function to find the index of a FreeAmplitude in the parameter vector.
-// TODO make FreeAmplitude constant
-const size_t free_amplitude_idx(const std::shared_ptr<yap::FreeAmplitude>& fa,
-                                const yap::FreeAmplitudeVector& fas) {
-    using namespace std;
-    const auto it = find(begin(fas), end(fas), fa);
-
-    if (it == end(fas))
-        throw yap::exceptions::Exception("FreeAmplitude not found", "free_amplitude_idx");
-
-    return 2 * distance(begin(fas), it);
+// Helper function to return the index of the parameter corresponding to the amplitude 
+// of the queried free amplitude.
+inline const size_t amplitude_parameter_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                              const std::shared_ptr<const FitModel>& fit_model) {
+    return 2 * free_amplitude_index(fa, fit_model);
 }
 
-const size_t free_amplitude_idx(const std::shared_ptr<yap::FreeAmplitude>& fa,
-                                const std::shared_ptr<FitModel>& fit_model) {
-    return free_amplitude_idx(fa, fit_model->freeAmplitudes());
+// Helper function to return the index of the parameter corresponding to the phase
+// of the queried free amplitude.
+inline const size_t phase_parameter_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                          const std::shared_ptr<const FitModel>& fit_model) {
+    return 2 * free_amplitude_index(fa, fit_model) + 1;
 }
 
 // ---------------------------------------------------------
@@ -189,28 +185,33 @@ const size_t free_amplitude_idx(const std::shared_ptr<yap::FreeAmplitude>& fa,
 #endif
 }
 
-
-void Fit::fixComponent(const std::shared_ptr<yap::FreeAmplitude>& fa, const unsigned char j, const double value) {
-    if (j > 1)
-        throw yap::exceptions::Exception("FreeAmplitude only has two components", "Fit::fixComponent");
-
-    const auto i = free_amplitude_idx(fa, FitModel_);
-    GetParameter(i + j).Fix(value);
+void Fit::fixAmplitude(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value) {
+    const auto i = amplitude_parameter_index(fa, FitModel_);
+    GetParameter(i).Fix(value);
 }
 
-void Fit::setRanges(const std::shared_ptr<yap::FreeAmplitude>& fa, double first_low, double first_high, double second_low, double second_high) {
-    const auto i = free_amplitude_idx(fa, FitModel_);
-    GetParameter(i + 0).SetLimits(first_low,  first_high);
-    GetParameter(i + 1).SetLimits(second_low, second_high);
+void Fit::fixPhase(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value) {
+    const auto i = phase_parameter_index(fa, FitModel_);
+    GetParameter(i).Fix(value);
+}
+
+void Fit::setAmplitudeRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, double low, double high) {
+    const auto i = amplitude_parameter_index(fa, FitModel_);
+    GetParameter(i).SetLimits(low, high);
+}
+
+void Fit::setPhaseRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, double low, double high) {
+    const auto i = phase_parameter_index(fa, FitModel_);
+    GetParameter(i).SetLimits(low, high);
 }
 
 std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name) {
     // Create a model to fit the data.
     const std::shared_ptr<FitModel> fit_model(make_fit_model(model_name));
-    assert(fit_model->freeAmplitudes().size() == 22);
+//    assert(fit_model->freeAmplitudes().size() == 22);
 
     // Create the integrator.
-    constexpr unsigned integration_points     = 2e4;
+    constexpr unsigned integration_points = 2e4;
     auto integrator(std::make_unique<FitIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
 
     auto root_file_handler(std::make_unique<RootFileHandler>(file_path, file_name));
@@ -227,8 +228,9 @@ std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, co
         const auto fa  = std::prev(std::end(fas), 1);
 
         // Fix the last amplitude.
-        fit->fixComponent(*fa, 0, 1);
-        fit->fixComponent(*begin(fas), 1, 0);
+        fit->fixAmplitude(*fa, 1);
+        // Fix the first phase.
+        fit->fixPhase(*begin(fas), 0);
     }
 
     return fit;

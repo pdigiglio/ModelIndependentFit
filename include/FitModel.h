@@ -54,6 +54,10 @@ public:
     yap::FreeAmplitudeVector& freeAmplitudes() noexcept
     { return FreeAmplitudes_; }
 
+    /// Return the non-fixed free amplitudes.
+    const yap::FreeAmplitudeVector& freeAmplitudes() const noexcept
+    { return FreeAmplitudes_; }
+
     /// Use a common radial size [GeV^-1] for all the resonances.
     static constexpr const double radialSize() noexcept
     { return 3.; }
@@ -98,6 +102,12 @@ std::unique_ptr<FitModel> make_fit_model(const std::string& model_name);
 /// @brief Attempts an initial guess for the fit parameters based on the model used to generate MC data.
 /// @param m (What is it for?)
 const std::vector<double> guess_parameters(Fit& m);
+
+/// Returns the index of a free amplitude in the FreeAmplitude vector of the fit model.
+/// @param fa        The free amplitude to query for.
+/// @param fit_model The model in which to look for the free amplitude.
+/// @throw yap::exceptions::Exception If the free queried free amplitude is not in the vector.
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa, const std::shared_ptr<const FitModel>& fit_model);
 
 /// @brief Prints the fit parameters in an output text file.
 /// @param m The Fit model whose parameters to print.
