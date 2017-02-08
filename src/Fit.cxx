@@ -24,6 +24,34 @@
 
 // #include <BAT/BCMath.h>
 
+// Helper function to return the index of the parameter corresponding to the amplitude 
+// of the queried free amplitude.
+inline const size_t amplitude_parameter_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                              const std::shared_ptr<const FitModel>& fit_model) {
+    return 2 * free_amplitude_index(fa, fit_model);
+}
+
+// Helper function to return the index of the parameter corresponding to the phase
+// of the queried free amplitude.
+inline const size_t phase_parameter_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                          const std::shared_ptr<const FitModel>& fit_model) {
+    return 2 * free_amplitude_index(fa, fit_model) + 1;
+}
+
+// Helper function to return the index of the observable corresponding to the real part
+// of the queried free amplitude.
+inline const size_t real_observable_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                          const std::shared_ptr<const FitModel>& fit_model) {
+    return 2 * free_amplitude_index(fa, fit_model);
+}
+
+// Helper function to return the index of the observable corresponding to the imaginary part
+// of the queried free amplitude.
+inline const size_t imag_observable_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                          const std::shared_ptr<const FitModel>& fit_model) {
+    return 2 * free_amplitude_index(fa, fit_model) + 1;
+}
+
 // Helper function to get a name for a FreeAmplitude
 const std::string free_amplitude_name(const yap::FreeAmplitude& fa) noexcept {
     return yap::to_string(*fa.decayChannel())
@@ -92,11 +120,14 @@ double Fit::LogLikelihood(const std::vector<double>& pars)
 void Fit::setParameters(const std::vector<double>& p) {
     assert(p.size() == 2 * FitModel_->freeAmplitudes().size());
 
-    // Updates the values of the free amplitudes.
+    // Update the free-amplitude values.
     double cumulative_phase = 0.;
-    for (size_t i = 0; i < FitModel_->freeAmplitudes().size(); ++ i) {
-        *FitModel_->freeAmplitudes()[i] = std::polar<double>(p[2 * i], yap::rad<double>(p[2 * i + 1] + cumulative_phase));
-        cumulative_phase += p[2 * i + 1];
+    for (auto& fa : FitModel_->freeAmplitudes()) {
+        const auto amplitude = p[amplitude_parameter_index(fa, FitModel_)];
+
+        // Add the phase difference to the cumulative phase.
+        cumulative_phase += p[phase_parameter_index(fa, FitModel_)];
+        *fa = std::polar<double>(amplitude, yap::rad<double>(cumulative_phase));
     }
 
     // Evaluate the integral of the model (with the new parameters).
@@ -110,34 +141,17 @@ void Fit::setParameters(const std::vector<double>& p) {
 //     // If you use built-in priors, leave this function commented out.
 // }
 
-// Helper function to return the index of the parameter corresponding to the amplitude 
-// of the queried free amplitude.
-inline const size_t amplitude_parameter_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
-                                              const std::shared_ptr<const FitModel>& fit_model) {
-    return 2 * free_amplitude_index(fa, fit_model);
-}
-
-// Helper function to return the index of the parameter corresponding to the phase
-// of the queried free amplitude.
-inline const size_t phase_parameter_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
-                                          const std::shared_ptr<const FitModel>& fit_model) {
-    return 2 * free_amplitude_index(fa, fit_model) + 1;
-}
-
 // ---------------------------------------------------------
  void Fit::CalculateObservables(const std::vector<double>& p)
  {
-     // Use the values of the free amplitudes that I've already set
-     // in the setParameters() function, instead of evaluating them again.
-     for (size_t i = 0; i < FitModel_->freeAmplitudes().size(); ++ i) {
-         const auto A = FitModel_->freeAmplitudes()[i]->value();
+     for (const auto& fa : FitModel_->freeAmplitudes()) {
+         // Set the real value.
+         const auto r = real_observable_index(fa, FitModel_);
+         GetObservables()[r] = std::real(fa->value());
 
-         // TODO
-         // for( fa : fas ) {
-         //    i = distance(fas.begin(), fa);
-         // }
-         GetObservables()[i * 2]     = std::real(A);
-         GetObservables()[i * 2 + 1] = std::imag(A);
+         // Set the imaginary value.
+         const auto i = imag_observable_index(fa, FitModel_);
+         GetObservables()[i] = std::imag(fa->value());
      }
 
 #ifndef NDEBUG
