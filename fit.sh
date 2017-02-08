@@ -46,9 +46,20 @@ fi
 
 # Call the executable.
 fit_executable="runmiFit"
-if [ -x "$fit_executable" ]
+if [ ! -x "$fit_executable" ]
 then
-    ./${fit_executable} "${directory}" "$root_file" "$model_name"
+    echo "$fit_executable is not an executable file."
+fi
+
+# Check if the debug option is active
+if [ -z "$1" ]
+then
+    ./${fit_executable} "${directory}" "${root_file}" "${model_name}"
+elif [ "$1" == "--debug" ]
+then
+    gdb --args ./${fit_executable} "${directory}" "${root_file}" "${model_name}"
+else
+    echo " > Unknown option '$1'"
 fi
 
 backup_output
