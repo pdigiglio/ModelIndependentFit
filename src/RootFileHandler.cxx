@@ -31,13 +31,12 @@ RootFileHandler::RootFileHandler(const char* file_path,
 {
     std::cerr << " > Open input ROOT file: " << fileName() << " ... ";
     if (file()->IsZombie())
-        throw yap::exceptions::Exception("Can't open: " + fileName(), "ModelHandler::ModelHandler");
+        throw yap::exceptions::Exception("Can't open: " + fileName(), "RootFileHandler::RootFileHandler");
     std::cerr << "done!" << std::endl;
 
+    // Associate the TTrees to the file trees.
     MCMCTree_->associate(file(), mcmcTreeName());
     ParameterTree_->associate(file(), parameterTreeName());
 }
 
-RootFileHandler::~RootFileHandler() {
-    file()->Close();
-}
+RootFileHandler::~RootFileHandler() = default;
