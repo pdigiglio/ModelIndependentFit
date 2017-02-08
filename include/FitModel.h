@@ -23,6 +23,7 @@
 #include <memory>
 #include <vector>
 
+/// Wrapper for a `yap::Model` with some facility member function to make the model-indepentent fit easier.
 class FitModel {
 public:
     /// @brief Constructor.

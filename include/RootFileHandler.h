@@ -19,8 +19,7 @@
 #include <memory>
 #include <string>
 
-/// Manages the input .root data file and provides convenience
-/// functions to access its branches.
+/// Manages the input .root data file and provides convenience functions to access its branches.
 class RootFileHandler {
 public:
     /// @brief Constructor.

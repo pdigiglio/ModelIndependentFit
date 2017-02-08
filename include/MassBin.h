@@ -14,7 +14,7 @@
 
 #include <memory>
 
-/// Class to model a mass bin \f$m_{\text{min}} \le m < m_{\text{max}}\f$.
+/// Class to model a mass bin \f$m_{\textup{min}} \le m < m_{\textup{max}}\f$.
 class MassBin : public yap::MassShape
 {
 public:

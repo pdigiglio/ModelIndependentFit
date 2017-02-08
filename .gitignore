@@ -1,3 +1,6 @@
+# Ignore the directory containing the documentation
+documentation/*
+
 # Compiled Object files
 *.slo
 *.lo

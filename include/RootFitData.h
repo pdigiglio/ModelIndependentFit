@@ -20,7 +20,7 @@
 
 #include <memory>
 
-/// Manages the input .root data file.
+/// Interfaces YAP with the input ROOT data file.
 class RootFitData {
 public:
     /// @brief Constructor.
