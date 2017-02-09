@@ -172,7 +172,7 @@ std::function<std::complex<double>(double)> f0_mass_shape() {
     const auto data_model = d3pi();
     assert(data_model->locked());
 
-    const auto f0_BW = std::static_pointer_cast<const BreitWigner>(f_0(data_model)->massShape());
+    const auto f0_BW = std::static_pointer_cast<const yap::BreitWigner>(f_0(data_model)->massShape());
     const double f0_mass  = f0_BW->mass()->value();
     const double f0_width = f0_BW->width()->value();
     return [=](double s) { return 1. / std::complex<double>(f0_mass * f0_mass - s, - f0_mass * f0_width); };

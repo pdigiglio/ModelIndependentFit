@@ -6,7 +6,7 @@
 
 #include "Fit.h"
 
-#include "FitIntegrator.h"
+#include "OnTheFlyIntegrator.h"
 #include "FitModel.h"
 #include "RootFileHandler.h"
 #include "RootFitData.h"
@@ -199,7 +199,7 @@ std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, co
 
     // Create the integrator.
     constexpr unsigned integration_points = 2e4;
-    auto integrator(std::make_unique<FitIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
+    auto integrator(std::make_unique<OnTheFlyIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
 
     auto root_file_handler(std::make_unique<RootFileHandler>(file_path, file_name));
     auto root_fit_data(std::make_unique<RootFitData>(std::move(root_file_handler), fit_model));

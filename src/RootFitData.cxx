@@ -129,9 +129,11 @@ RootFitData::RootFitData(std::unique_ptr<RootFileHandler> rfh,
     FitModel_(fit_model),
     Data_(load_data(FitModel_, RootFile_->mcmcTree(), 1e4, -1)),
     Partitions_(yap::DataPartitionBlock::create(Data_, available_threads()))
-//    Data_(FitModel_->model()->createDataSet()),
-//    Partitions_(available_threads(), &Data_)
-{}
+{
+    assert(RootFile_ != nullptr);
+    assert(fit_model != nullptr);
+    assert(Data_.size() == 1e4);
+}
 
 const std::string RootFitData::path() const noexcept
 { return RootFile_->path(); }

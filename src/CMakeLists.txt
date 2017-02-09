@@ -7,10 +7,12 @@ include_directories(${BAT_INCLUDE_DIRS}
                     ${PARENT_SOURCE_DIR}/include)
 
 set(sources
+    CachedIntegrator.cxx
     Fit.cxx
     FitIntegrator.cxx
     FitModel.cxx
     MassBin.cxx
+    OnTheFlyIntegrator.cxx
     RootFileHandler.cxx
     RootFitData.cxx
     TTreeHandler.cxx

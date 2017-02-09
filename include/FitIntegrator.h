@@ -16,20 +16,14 @@
 
 #include <fwd/FourVector.h>
 
-#include <DataSet.h>
 #include <ModelIntegral.h>
 
 #include <functional>
 #include <random>
 
-/// Sample-integrator of the intensity over the model.
+/// Abstract base class for sample-integrators of the intensity over the model.
 class FitIntegrator {
 public: 
-    /// Function for generating new points for integration.
-    using Generator = std::function<std::vector<yap::FourVector<double> >()>;
-
-    /// The type of the random-number engine.
-    using RandomEngine = std::mt19937;
 
     /// @brief Constructor.
     /// @param fit_model The model according to which one wants to generate integration data.
@@ -37,20 +31,12 @@ public:
     explicit FitIntegrator(std::shared_ptr<const FitModel> fit_model,
                            const unsigned integration_points) noexcept;
 
-    /// Returns the point generator (const version).
-    const Generator& pointGenerator() const noexcept
-    { return PointGenerator_; }
-
-    /// Access the point generator.
-    Generator& pointGenerator() noexcept
-    { return PointGenerator_; }
+    /// _Default_ destructor.
+    virtual ~FitIntegrator() = default;
 
     /// Returns the number of integration points.
     const unsigned numberOfPoints() const noexcept
     { return NumberOfPoints_; }
-
-    const unsigned batchSize() const noexcept
-    { return BatchSize_; }
 
     /// Returns the number of threads used for the integration.
     const unsigned numberOfThreads() const noexcept
@@ -60,8 +46,12 @@ public:
     const yap::ModelIntegral& modelIntegral() const noexcept
     { return ModelIntegral_; }
 
+    /// Returns the fit model.
+    const std::shared_ptr<const FitModel>& fitModel() const noexcept
+    { return FitModel_; }
+
     /// Evaluates the integral of the model.
-    void integrate();
+    virtual void integrate() = 0;
 
 private:
 
@@ -70,23 +60,16 @@ private:
     /// the free amplitudes of the model.
     const std::shared_ptr<const FitModel> FitModel_;
 
-    /// The random number engine.
-    RandomEngine RandomEngine_;
-
-    /// The number of integration points (?)
+    /// The number of integration points.
     const unsigned NumberOfPoints_;
+
     /// Number of threads used for the integration.
     const unsigned NumberOfThreads_;
-    /// (?)
-    const unsigned BatchSize_;
 
-    /// Monte-Carlo generated integration data.
-    yap::DataSet             Data_;
-    yap::DataPartitionVector Partitions_;
-    yap::ModelIntegral       ModelIntegral_;
+protected:
 
-    /// Point generator for the integration.
-    Generator PointGenerator_;
+    /// The integral of the model.
+    yap::ModelIntegral ModelIntegral_;
 };
 
 #endif

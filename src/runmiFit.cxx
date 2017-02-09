@@ -9,12 +9,8 @@
 #include <BAT/BCAux.h>
 
 #include "Fit.h"
-#include "FitIntegrator.h"
-#include "FitModel.h"
-#include "RootFileHandler.h"
-#include "RootFitData.h"
+#include "FitModel.h" // for guess_parameters, write_fit... TODO: make another header
 
-#include <cassert>
 #include <iostream>
 #include <memory>
 
