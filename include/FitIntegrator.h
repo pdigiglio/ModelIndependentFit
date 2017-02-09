@@ -9,8 +9,8 @@
  *
  */
 
-#ifndef  INTEGRATOR_H
-#define  INTEGRATOR_H
+#ifndef  FIT_INTEGRATOR_H
+#define  FIT_INTEGRATOR_H
 
 #include "fwd/FitModel.h"
 
@@ -32,6 +32,8 @@ public:
     using RandomEngine = std::mt19937;
 
     /// @brief Constructor.
+    /// @param fit_model The model according to which one wants to generate integration data.
+    /// @param integration_points The number of points to generate.
     explicit FitIntegrator(std::shared_ptr<const FitModel> fit_model,
                            const unsigned integration_points) noexcept;
 
@@ -78,8 +80,9 @@ private:
     /// (?)
     const unsigned BatchSize_;
 
+    /// Monte-Carlo generated integration data.
     yap::DataSet             Data_;
-    yap::DataPartitionVector DataPartitions_;
+    yap::DataPartitionVector Partitions_;
     yap::ModelIntegral       ModelIntegral_;
 
     /// Point generator for the integration.
