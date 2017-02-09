@@ -69,11 +69,11 @@ Fit::Fit(std::shared_ptr<FitModel> fit_model,
     // Loop over the non-fixed free amplitudes and add them to the fit parameters.
     for (const auto& fa : FitModel_->freeAmplitudes()) {
         const auto fa_name = free_amplitude_name(*fa);
-
-        const double upper_amp_range = 3. * abs(fa->value());
 #ifndef NDEBUG
         std::cout << "Add parameter for decay mode " << fa_name << std::endl;
 #endif
+
+        const double upper_amp_range = 20. * abs(fa->value());
         AddParameter("amp(" + fa_name + ")", 0., upper_amp_range);
         GetParameters().Back().SetPriorConstant();
 
@@ -117,6 +117,7 @@ double Fit::LogLikelihood(const std::vector<double>& pars)
     return L;
 }
 
+// ---------------------------------------------------------
 void Fit::setParameters(const std::vector<double>& p) {
     assert(p.size() == 2 * FitModel_->freeAmplitudes().size());
 
@@ -147,11 +148,11 @@ void Fit::setParameters(const std::vector<double>& p) {
      for (const auto& fa : FitModel_->freeAmplitudes()) {
          // Set the real value.
          const auto r = real_observable_index(fa, FitModel_);
-         GetObservables()[r] = std::real(fa->value());
+         GetObservable(r) = std::real(fa->value());
 
          // Set the imaginary value.
          const auto i = imag_observable_index(fa, FitModel_);
-         GetObservables()[i] = std::imag(fa->value());
+         GetObservable(i) = std::imag(fa->value());
      }
 
 #ifndef NDEBUG
@@ -166,26 +167,31 @@ void Fit::setParameters(const std::vector<double>& p) {
 #endif
 }
 
+// ---------------------------------------------------------
 void Fit::fixAmplitude(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value) {
     const auto i = amplitude_parameter_index(fa, FitModel_);
     GetParameter(i).Fix(value);
 }
 
+// ---------------------------------------------------------
 void Fit::fixPhase(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value) {
     const auto i = phase_parameter_index(fa, FitModel_);
     GetParameter(i).Fix(value);
 }
 
+// ---------------------------------------------------------
 void Fit::setAmplitudeRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, double low, double high) {
     const auto i = amplitude_parameter_index(fa, FitModel_);
     GetParameter(i).SetLimits(low, high);
 }
 
+// ---------------------------------------------------------
 void Fit::setPhaseRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, double low, double high) {
     const auto i = phase_parameter_index(fa, FitModel_);
     GetParameter(i).SetLimits(low, high);
 }
 
+// ---------------------------------------------------------
 std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name) {
     // Create a model to fit the data.
     const std::shared_ptr<FitModel> fit_model(make_fit_model(model_name));
@@ -201,18 +207,18 @@ std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, co
     // Create the BAT model for fitting the data.
     auto fit(std::make_unique<Fit>(fit_model, std::move(root_fit_data), std::move(integrator)));
 
-    // Fix amplitudes in the fit
-    {
-        // Get the non-fixed free amplitudes.
-        const auto fas = fit_model->freeAmplitudes();
-        // Iterator to the last (valid) one.
-        const auto fa  = std::prev(std::end(fas), 1);
-
-        // Fix the last amplitude.
-        fit->fixAmplitude(*fa, 1);
-        // Fix the first phase.
-        fit->fixPhase(*begin(fas), 0);
-    }
+//    // Fix amplitudes in the fit
+//    {
+//        // Get the non-fixed free amplitudes.
+//        const auto fas = fit_model->freeAmplitudes();
+//        // Iterator to the last (valid) one.
+//        const auto fa  = std::prev(std::end(fas), 1);
+//
+//        // Fix the last amplitude.
+//        fit->fixAmplitude(*fa, 1);
+//        // Fix the first phase.
+//        fit->fixPhase(*begin(fas), 0);
+//    }
 
     return fit;
 }

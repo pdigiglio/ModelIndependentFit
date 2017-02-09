@@ -166,6 +166,18 @@ const std::vector<double> mass_partition_of_model(const std::unique_ptr<yap::Mod
                                std::abs(FitModel::Dmass() - piPlus->mass()));
 }
 
+
+// Helper function to get the f0's resonance mass shape.
+std::function<std::complex<double>(double)> f0_mass_shape() {
+    const auto data_model = d3pi();
+    assert(data_model->locked());
+
+    const auto f0_BW = std::static_pointer_cast<const BreitWigner>(f_0(data_model)->massShape());
+    const double f0_mass  = f0_BW->mass()->value();
+    const double f0_width = f0_BW->width()->value();
+    return [=](double s) { return 1. / std::complex<double>(f0_mass * f0_mass - s, - f0_mass * f0_width); };
+}
+
 std::unique_ptr<yap::Model> d3pi_binned() {
     using namespace std;
     using namespace yap;
@@ -227,14 +239,8 @@ std::unique_ptr<yap::Model> d3pi_binned() {
     // Use the model that generated the MC data to set the initial
     // values for the free amplitudes of the bins.
     {
-        const auto data_model = d3pi();
-
-        const auto f0_BW = std::static_pointer_cast<const BreitWigner>(f_0(data_model)->massShape());
-        const double f0_mass  = f0_BW->mass()->value();
-        const double f0_width = f0_BW->width()->value();
-        auto bw = [=](double s) {
-            return 1. / std::complex<double>(f0_mass * f0_mass - s, - f0_mass * f0_width);
-        };
+        // Get the mass shape of the f0 according to the MC-data model.
+        auto bw = f0_mass_shape();
 
         int i = 0;
         for (const auto& fa : free_amplitudes(*M, from(*D), is_not_fixed())) {
@@ -306,51 +312,28 @@ std::unique_ptr<yap::Model> d3pi()
 }
 
 const std::vector<double> guess_parameters(Fit& m) {
-    // The model according to which the MC data were generated.
-    const auto data_model = d3pi();
-
-    // Get the parameters of the f0 resonance to reproduce its shape.
-    const auto f0_BW    = std::static_pointer_cast<const yap::BreitWigner>(f_0(data_model)->massShape());
-    const auto BW_width = f0_BW->width()->value();
-    const auto BW_mass  = f0_BW->mass()->value();
-
-    // Reproduce the mass shape of the f0 resonance.
-    auto bw = [=](const double s) {
-        return 1. / std::complex<double>(BW_mass * BW_mass - s, -BW_mass * BW_width);
-    };
-
     // Get the mass-range partition.
     const auto p = mass_partition_of_model(m.model());
+    assert(2 * (p.size() - 1) == m.GetParameters().Size());
 
-    auto pi = []() { return std::acos(-1); };
+    // Get the mass shape of the f0 according to the MC-data model.
+    auto bw = f0_mass_shape();
 
-//    // Find the fixed parameters.
-//    std::vector<int> fixed_parameter_indices;
-//    for (const auto& parameter : m.GetParameters())
-//        if (parameter.Fixed())
-//            fixed_parameter_indices.push_back(std::distance(std::begin(m.GetParameters()), parameter));
-//
-//    assert(fixed_parameter_indices.size() == 2);
-//    for (const auto& fpi : fixed_parameter_indices)
-//        assert(!(fpi < 0));
-//
-//    assert(false);
+
+//    auto pi = []() { return std::acos(-1); };
 
 
     // The fixed value of the second bin's amplitude.
     const auto fixed_amplitude_idx = m.GetParameters().Size() - 2;
-    const auto normalization = 1. / std::abs(bw(p[fixed_amplitude_idx/2] * p[fixed_amplitude_idx/2]));
+    const auto normalization = 1.; // / std::abs(bw(p[fixed_amplitude_idx/2] * p[fixed_amplitude_idx/2]));
 
-    assert(2 * (p.size() - 1) == m.GetParameters().Size());
 
-    std::cout << "Parameters:      " << m.GetParameters().Size() << std::endl;
-    // run mode finding; by default using Minuit
     std::vector<double> guess(m.GetParameters().Size(), 0);
     unsigned fixed_parameters = 0;
 
     // The initial value is such that the first phase difference is 0.
-    const double phase_shift = std::arg(bw(p[0] * p[0])) * 180 / pi();
-    double cumulative_phase  = phase_shift;
+    const double phase_shift = yap::deg<double>(std::arg(bw(p[0] * p[0])));
+    double cumulative_phase  = 0.; //phase_shift;
     std::ofstream par_guess("output/par_guess.txt", std::ios::out); 
     par_guess << "#low_mass  abs        shifted phase (deg) phase (deg) delta_phase" << std::endl;
     for (size_t i = 0; i < p.size() - 1; ++ i) {
@@ -358,7 +341,7 @@ const std::vector<double> guess_parameters(Fit& m) {
         // Evaluate the value of the BW on the lower edge of the bin.
         const auto BW_value = bw(p[i] * p[i]);
         const auto BW_magnitude = std::abs(BW_value);
-        const auto BW_ph_diff   = std::arg(BW_value) * 180 / pi() - cumulative_phase;
+        const auto BW_ph_diff   = yap::deg<double>(std::arg(BW_value)) - cumulative_phase;
 
 //        std::cout << std::setw(9) << p[i] << " "
 //                  << std::setw(9) << std::real(BW_value) << " "
@@ -379,21 +362,21 @@ const std::vector<double> guess_parameters(Fit& m) {
             const auto idx = 2 * i + j;
 
             const auto& parameter = m.GetParameter(idx);
-            if (idx == 1 || idx == fixed_amplitude_idx) {
-                assert(parameter.Fixed());
-                guess[idx] = parameter.GetFixedValue();
-                assert(guess[idx] == guess_pars[j]);
-                ++ fixed_parameters;
-            } else {
+//            if (idx == 1 ) { // || idx == fixed_amplitude_idx) {
+//                assert(parameter.Fixed());
+//                guess[idx] = parameter.GetFixedValue();
+//                assert(guess[idx] == guess_pars[j]);
+//                ++ fixed_parameters;
+//            } else {
                 assert(!parameter.Fixed());
                 guess[idx] = guess_pars[j];
-            }
+//            }
         }
 
         cumulative_phase += BW_ph_diff;
     }
 
-    assert(fixed_parameters == 2);
+//    assert(fixed_parameters == 2);
 
 //    std::cout << "Free Parameters: " << m.GetParameters().Size() - fixed_parameters << std::endl;
 //
