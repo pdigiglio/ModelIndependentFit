@@ -58,6 +58,9 @@ then
 elif [ "$1" == "--debug" ]
 then
     gdb --args ./${fit_executable} "${directory}" "${root_file}" "${model_name}"
+elif [ "$1" == "--valgrind" ]
+then
+    valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./${fit_executable} "${directory}" "${root_file}" "${model_name}"
 else
     echo " > Unknown option '$1'"
 fi
