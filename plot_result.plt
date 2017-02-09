@@ -34,8 +34,8 @@ set xlabel "Mass-bin low edge [GeV/c^2]"
 set ylabel "Decay intensity"
 
 set autoscale
-plot "par_fit.txt"   using 1:2:3         with yerrorbars  title "Best fit parameters (w. error bars)", \
-     "par_fit.txt"   using 1:2           with lines       notitle, \
+plot "par_fit.txt"   using 1:2           with steps       notitle, \
+     "par_fit.txt"   using 1:2:3         with yerrorbars  title "Best fit parameters (w. error bars)", \
      "par_guess.txt" using 1:2           with linespoints title "Guess parameters",
 
      #"par_guess.txt" using 1:(norm * $2) with linespoints title "(15.9/.9394) * guess par"
