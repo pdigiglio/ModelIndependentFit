@@ -6,8 +6,9 @@
 
 #include "Fit.h"
 
-#include "OnTheFlyIntegrator.h"
+#include "CachedIntegrator.h"
 #include "FitModel.h"
+#include "OnTheFlyIntegrator.h"
 #include "RootFileHandler.h"
 #include "RootFitData.h"
 
@@ -192,14 +193,18 @@ void Fit::setPhaseRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, dou
 }
 
 // ---------------------------------------------------------
+//template <typename Integrator,
+//          typename = std::enable_if_t<std::is_base_of<FitIntegrator, Integrator>::value>>
 std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name) {
+    using Integrator = CachedIntegrator;
+
     // Create a model to fit the data.
     const std::shared_ptr<FitModel> fit_model(make_fit_model(model_name));
 //    assert(fit_model->freeAmplitudes().size() == 22);
 
     // Create the integrator.
     constexpr unsigned integration_points = 2e4;
-    auto integrator(std::make_unique<OnTheFlyIntegrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
+    auto integrator(std::make_unique<Integrator>(std::static_pointer_cast<const FitModel>(fit_model), integration_points));
 
     auto root_file_handler(std::make_unique<RootFileHandler>(file_path, file_name));
     auto root_fit_data(std::make_unique<RootFitData>(std::move(root_file_handler), fit_model));
