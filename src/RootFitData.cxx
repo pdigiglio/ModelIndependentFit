@@ -20,9 +20,6 @@
 #include <FourVector.h>
 #include <DataPartition.h>
 #include <DataSet.h>
-#include <logging.h>
-
-#include <TTree.h>
 
 #include <cassert>
 #include <iterator>
@@ -59,13 +56,8 @@ yap::DataSet load_data( std::shared_ptr<const FitModel> fit_model,
     // Check that all the mass axes have been loaded.
     assert(m2.size() == A.size());
 
-    // Load data.
-    auto Phase     = t_mcmc->setBranchAddress<int>("Phase");
-    auto Iteration = t_mcmc->setBranchAddress<unsigned>("Iteration");
-    auto Chain     = t_mcmc->setBranchAddress<unsigned>("Chain");
-
+    // Get the number of entries.
     const auto n_entries = t_mcmc->entries();
-
     // If N is negative, try to load all the data.
     N   = ((N < 0)   ? n_entries : N);
     // Evaluate the lag.
@@ -74,10 +66,11 @@ yap::DataSet load_data( std::shared_ptr<const FitModel> fit_model,
 
     // Create an empty data set.
     auto data_set = fit_model->model()->createDataSet();
-    // Store the current data size.
-    const size_t old_size = data_set.size();
 
     // Read input data and make sure that they're in the pase space.
+    auto Phase     = t_mcmc->setBranchAddress<int>("Phase");
+    auto Iteration = t_mcmc->setBranchAddress<unsigned>("Iteration");
+
     int n_attempted = 0;
     for (long long n = 0; n < n_entries and n_attempted < N; ++n) {
         t_mcmc->getEntry(n);
@@ -87,9 +80,6 @@ yap::DataSet load_data( std::shared_ptr<const FitModel> fit_model,
 
         if (*Iteration % lag != 0)
             continue;
-
-        // if (fabs(m2[0] - 1.35 * 1.35) > 0.1 or m2[1] > 1.55 or m2[1] < 0.58)
-        //     continue;
 
         ++n_attempted;
 
@@ -112,14 +102,6 @@ yap::DataSet load_data( std::shared_ptr<const FitModel> fit_model,
 
     // Check that some data were loaded.
     assert(!data_set.empty());
-
-    LOG(INFO) << "Loaded " << data_set.size() - old_size << " data points ("
-              << ((data_set.size() - old_size) * data_set[0].bytes() * 1.e-6) << " MB)"
-              << " from a tree of size " << n_entries << ", with a lag of " << lag;
-
-    if (int(data_set.size() - old_size) < N)
-        LOG(WARNING) << "could not load as many data points as requested. Reduce the lag (or set it to -1 to automatically determine the lag).";
-
     return data_set;
 }
 
