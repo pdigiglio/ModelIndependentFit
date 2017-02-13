@@ -41,7 +41,7 @@ FitModel::FitModel(std::unique_ptr<yap::Model> m,
     Name_(model_name),
     Model_(std::move(m)),
     MassAxes_(model()->massAxes()),
-    MassRanges_(yap::squared(mass_range(FitModel::Dmass(), massAxes(), model()->finalStateParticles()))),
+    SquaredMassRanges_(yap::squared(mass_range(FitModel::Dmass(), massAxes(), model()->finalStateParticles()))),
     FreeAmplitudes_()
 {
     // Check if the model is valid
@@ -58,7 +58,7 @@ FitModel::FitModel(std::unique_ptr<yap::Model> m,
         throw yap::exceptions::Exception("Mass axes empty", "FitModel::FitModel");
 
     // Check if the mass ranges are not empty.
-    if (massRanges().empty())
+    if (squaredMassRanges().empty())
         throw yap::exceptions::Exception("Mass ranges empty", "FitModel::FitModel");
 
     // Copy the non-fixed FreeAmplitude's in the internal storage.
@@ -300,7 +300,10 @@ std::unique_ptr<yap::Model> d3pi()
 
 		// Add the resonance to the D decay.
 		D->addWeakDecay(r, piPlus);
+
+#ifndef NDEBUG
 		std::cout << rn << " resonance added to the D decay." << std::endl;
+#endif
 	}
 
 	// Set the decay initial state.

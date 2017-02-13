@@ -48,8 +48,8 @@ public:
     { return MassAxes_; }
 
     /// Returns the mass ranges.
-    const std::vector<yap::MassRange>& massRanges() const noexcept
-    { return MassRanges_; }
+    const std::vector<yap::MassRange>& squaredMassRanges() const noexcept
+    { return SquaredMassRanges_; }
 
     /// Access the non-fixed free amplitudes.
     yap::FreeAmplitudeVector& freeAmplitudes() noexcept
@@ -78,8 +78,8 @@ private:
     /// The default mass axes.
     const yap::MassAxes MassAxes_;
 
-    /// The mass ranges for the decay.
-    const std::vector<yap::MassRange> MassRanges_;
+    /// The squared-mass ranges for the decay.
+    const std::vector<yap::MassRange> SquaredMassRanges_;
 
     /// @brief The non-fixed FreeAmplitude's of the model.
     /// @attention By chenging these, the values of the free

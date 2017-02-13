@@ -35,7 +35,7 @@ yap::DataSet generate_data(const std::shared_ptr<const FitModel>& fm,
     std::mt19937 g(0);
     const auto max_attempts = std::numeric_limits<unsigned>::max();
     auto point_generator = [&]() {
-        return yap::phsp(*fm->model(), FitModel::Dmass(), fm->massAxes(), fm->massRanges(), g, max_attempts);
+        return yap::phsp(*fm->model(), FitModel::Dmass(), fm->massAxes(), fm->squaredMassRanges(), g, max_attempts);
     };
 
     // Create empty data.

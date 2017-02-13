@@ -8,6 +8,7 @@ include_directories(${BAT_INCLUDE_DIRS}
 
 set(sources
     CachedIntegrator.cxx
+    DataGenerator.cxx
     Fit.cxx
     FitIntegrator.cxx
     FitModel.cxx

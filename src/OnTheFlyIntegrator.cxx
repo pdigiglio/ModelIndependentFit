@@ -27,7 +27,7 @@ OnTheFlyIntegrator::OnTheFlyIntegrator(std::shared_ptr<const FitModel> fit_model
     FitIntegrator(fit_model, integration_points),
     RandomEngine_(0),
     BatchSize_(numberOfPoints() / numberOfThreads()),
-    PointGenerator_([=]() { return yap::phsp(*fitModel()->model(), FitModel::Dmass(), fitModel()->massAxes(), fitModel()->massRanges(), RandomEngine_, std::numeric_limits<unsigned>::max()); })
+    PointGenerator_([=]() { return yap::phsp(*fitModel()->model(), FitModel::Dmass(), fitModel()->massAxes(), fitModel()->squaredMassRanges(), RandomEngine_, std::numeric_limits<unsigned>::max()); })
 {} 
 
 void OnTheFlyIntegrator::integrate() {
