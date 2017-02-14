@@ -11,23 +11,24 @@
 
 #include "FitModel.h"
 
-#include "MassBin.h"
 #include "Fit.h"
+#include "FitResultFileIterator.h"
+#include "FittedFreeAmplitude.h"
+#include "MassBin.h"
 
 #include <Attributes.h>
-#include <Exceptions.h>
 #include <BreitWigner.h>
+#include <DecayTree.h> // for to_string
+#include <DecayingParticle.h>
+#include <Exceptions.h>
+#include <FinalStateParticle.h>
 #include <FreeAmplitude.h>
 #include <MassAxes.h>
 #include <MassRange.h>
 #include <Model.h>
+#include <PDL.h>
 #include <Parameter.h>
 #include <ZemachFormalism.h>
-#include <PDL.h>
-#include <FinalStateParticle.h>
-#include <DecayingParticle.h>
-// for to_string
-#include <DecayTree.h>
 
 #include <algorithm>
 #include <cassert>
@@ -95,13 +96,13 @@ const std::vector<double> partition_mass_axis(double low_range, double up_range)
     assert(low_range < up_range);
 
     // partition
-    constexpr unsigned bins1 = 8;
+    constexpr unsigned bins1 = 3;
     auto p1 = partition_range(low_range, 0.823231, bins1);
 
-    constexpr unsigned bins2 = 14;
+    constexpr unsigned bins2 = 4;
     auto p2 = partition_range(0.823231, 1.18596, bins2);
 
-    constexpr unsigned bins3 = 8;
+    constexpr unsigned bins3 = 3;
     auto p3 = partition_range(1.18596, up_range, bins3);
 
     // number of bins
@@ -178,7 +179,7 @@ std::function<std::complex<double>(double)> f0_mass_shape() {
     return [=](double s) { return 1. / std::complex<double>(f0_mass * f0_mass - s, - f0_mass * f0_width); };
 }
 
-std::unique_ptr<yap::Model> d3pi_binned() {
+std::unique_ptr<yap::Model> create_d3pi_binned() {
     using namespace std;
     using namespace yap;
 
@@ -235,6 +236,17 @@ std::unique_ptr<yap::Model> d3pi_binned() {
     // Check that each bin has an associated free amplitude
     assert(bins == free_amplitudes(*M, from(D), is_not_fixed()).size());
 
+    return M;
+}
+
+std::unique_ptr<yap::Model> d3pi_binned() {
+    using namespace std;
+    using namespace yap;
+
+    // Create a model.
+    auto M = create_d3pi_binned();
+    const auto p = mass_partition_of_model(M);
+
     // -----------------------------------------------------------------
     // Use the model that generated the MC data to set the initial
     // values for the free amplitudes of the bins.
@@ -242,8 +254,11 @@ std::unique_ptr<yap::Model> d3pi_binned() {
         // Get the mass shape of the f0 according to the MC-data model.
         auto bw = f0_mass_shape();
 
+        // Get the D+ particle from the model.
+        const auto D = std::static_pointer_cast<DecayingParticle>(particle(*M, is_named("D+")));
+
         int i = 0;
-        for (const auto& fa : free_amplitudes(*M, from(*D), is_not_fixed())) {
+        for (const auto& fa : free_amplitudes(*M, from(D), is_not_fixed())) {
             // Evaluate BW on the low edge of the bin.
             const auto bin_low_edge = p[i];
             const auto bw_value = bw(bin_low_edge * bin_low_edge);
@@ -256,6 +271,51 @@ std::unique_ptr<yap::Model> d3pi_binned() {
         }
     }
     // -----------------------------------------------------------------
+
+    return M;
+}
+
+std::unique_ptr<yap::Model> d3pi_binned(const std::string& file_name) {
+    // Make a binned model
+    auto M = create_d3pi_binned();
+
+    const auto D = std::static_pointer_cast<yap::DecayingParticle>(yap::particle(*M, yap::is_named("D+")));
+    const auto fas = yap::free_amplitudes(*M, yap::from(D), yap::is_not_fixed());
+
+    // Check that the number of lines and the number of free amplitudes match.
+    {
+        std::ifstream par_fit(file_name, std::ios::in);
+        if (!par_fit)
+            throw yap::exceptions::Exception("Can't open " + file_name, "d3pi_binned");
+
+        const auto lines = count_lines(par_fit);
+        if (fas.size() != lines)
+            throw yap::exceptions::Exception("The number of FreeAmplitudes (" + std::to_string(fas.size()) +
+                                             ") doesn't correspond to the file lines (" + std::to_string(lines) + ")",
+                                             "d3pi_binned");
+    }
+
+    // No need to check for exceptions as I already did it.
+    std::ifstream par_fit(file_name, std::ios::in);
+    FitResultFileIterator it(par_fit);
+    for (const auto& fa : fas) {
+        // Assign the input value.
+        assert(it != FitResultFileIterator::end());
+        // Temporary copy of the fitted free amplitude.
+        const auto ffa = *it;
+
+#ifndef NDEBUG
+        std::cout << ffa << std::endl;
+#endif
+        // Fix the amplitude to the fitted value.
+        *fa = std::polar<double>(ffa.amplitude, ffa.cumulative_phase);
+        fa->variableStatus() = yap::VariableStatus::fixed;
+
+        // Read the next line.
+        ++ it;
+    }
+
+    throw;
 
     return M;
 }
@@ -322,10 +382,6 @@ const std::vector<double> guess_parameters(Fit& m) {
     // Get the mass shape of the f0 according to the MC-data model.
     auto bw = f0_mass_shape();
 
-
-//    auto pi = []() { return std::acos(-1); };
-
-
     // The fixed value of the second bin's amplitude.
     const auto fixed_amplitude_idx = m.GetParameters().Size() - 2;
     const auto normalization = 1.; // / std::abs(bw(p[fixed_amplitude_idx/2] * p[fixed_amplitude_idx/2]));
@@ -338,7 +394,7 @@ const std::vector<double> guess_parameters(Fit& m) {
     const double phase_shift = yap::deg<double>(std::arg(bw(p[0] * p[0])));
     double cumulative_phase  = 0.; //phase_shift;
     std::ofstream par_guess("output/par_guess.txt", std::ios::out); 
-    par_guess << "#low_mass  abs        shifted phase (deg) phase (deg) delta_phase" << std::endl;
+    par_guess << FittedFreeAmplitude::header() << std::endl;
     for (size_t i = 0; i < p.size() - 1; ++ i) {
 
         // Evaluate the value of the BW on the lower edge of the bin.
@@ -346,20 +402,11 @@ const std::vector<double> guess_parameters(Fit& m) {
         const auto BW_magnitude = std::abs(BW_value);
         const auto BW_ph_diff   = yap::deg<double>(std::arg(BW_value)) - cumulative_phase;
 
-//        std::cout << std::setw(9) << p[i] << " "
-//                  << std::setw(9) << std::real(BW_value) << " "
-//                  << std::setw(9) << std::imag(BW_value) << " "
-//                  << std::setw(9) << std::abs(BW_value)  << " "
-//                  << std::setw(9) << std::arg(BW_value) * 180 / pi() << std::endl; 
         // Store magnitude and phase difference in a vector (useful for indeces).
         const std::vector<double> guess_pars({normalization * BW_magnitude, BW_ph_diff});
 
-        par_guess << std::left
-                  << std::setw(10) << p[i] << " "
-                  << std::setw(10) << guess_pars[0] << " "
-                  << std::setw(19) << guess_pars[1] + cumulative_phase - phase_shift << " "
-                  << std::setw(11) << guess_pars[1] + cumulative_phase << " "
-                  << std::setw(10) << guess_pars[1] << std::endl;
+        // Wrap the values into a FittedFreeAmplitude to easily stream them to the file.
+        par_guess << FittedFreeAmplitude(p[i], guess_pars[0], 0., guess_pars[1], 0., guess_pars[1] + cumulative_phase, 0.) << std::endl;
 
         for (size_t j = 0; j < 2; ++ j) {
             const auto idx = 2 * i + j;

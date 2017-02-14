@@ -96,6 +96,9 @@ inline std::unique_ptr<yap::Model> make_model()
 /// @brief Helper function to set up the model for generating MC data.
 std::unique_ptr<yap::Model> d3pi();
 
+/// @brief Makes a new binned model 
+std::unique_ptr<yap::Model> d3pi_binned(const std::string& file_name);
+
 /// @brief Creates a new FitModel instance.
 /// @param model_name The name of the model.
 std::unique_ptr<FitModel> make_fit_model(const std::string& model_name);

@@ -12,6 +12,8 @@ set(sources
     Fit.cxx
     FitIntegrator.cxx
     FitModel.cxx
+    FitResultFileIterator.cxx
+    FittedFreeAmplitude.cxx
     MassBin.cxx
     OnTheFlyIntegrator.cxx
     RootFileHandler.cxx
