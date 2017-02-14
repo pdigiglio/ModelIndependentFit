@@ -12,7 +12,7 @@ set xlabel "Mass-bin low edge [GeV/c^2]"
 set ylabel "Cumulative phase [deg]"
 
 set autoscale
-plot "par_guess.txt" using 1:3    with linespoints title "Guess cumulative phase", \
+plot "par_guess.txt" using 1:6    with linespoints title "Guess cumulative phase", \
      "par_fit.txt"   using 1:6:7  with yerrorbars  title "Best fit parameters (w. error bars)", \
      "par_fit.txt"   using 1:6    with lines       notitle
 
@@ -21,7 +21,7 @@ set xlabel "Mass-bin low edge [GeV/c^2]"
 set ylabel "Phase difference [deg]"
 
 set autoscale
-plot "par_guess.txt" using 1:5    with linespoints title "Guess phase difference", \
+plot "par_guess.txt" using 1:4    with linespoints title "Guess phase difference", \
      "par_fit.txt"   using 1:4:5  with yerrorbars  title "Best fit parameters (w. error bars)", \
      "par_fit.txt"   using 1:4    with lines       notitle
 
