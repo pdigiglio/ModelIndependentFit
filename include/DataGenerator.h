@@ -23,8 +23,10 @@
 class DataGenerator final : public BCModel {
 public:
     /// @brief Constructor.
-    /// @param fit_model The model according to which to generate data.
-    explicit DataGenerator(std::shared_ptr<const FitModel> fit_model);
+    /// @param fit_model  The model according to which to generate data.
+    /// @param model_name An (optional) model name.
+    explicit DataGenerator(std::shared_ptr<const FitModel> fit_model,
+                           const std::string model_name = "");
 
     /// @brief The logarithm of the likelihood function.
     /// @param p The (unused) model parameters.
