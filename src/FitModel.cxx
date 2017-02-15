@@ -14,18 +14,11 @@
 #include "Fit.h"
 #include "MassBin.h"
 
-#include <BreitWigner.h>
-#include <DecayTree.h> // for to_string
-#include <DecayingParticle.h>
 #include <Exceptions.h>
-#include <FinalStateParticle.h>
 #include <FreeAmplitude.h>
 #include <MassAxes.h>
 #include <MassRange.h>
 #include <Model.h>
-#include <PDL.h>
-#include <Parameter.h>
-#include <ZemachFormalism.h>
 
 #include <algorithm>
 #include <cassert>
