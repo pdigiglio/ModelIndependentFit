@@ -275,7 +275,7 @@ const std::vector<double> guess_parameters(Fit& m) {
     unsigned fixed_parameters = 0;
 
     // The initial value is such that the first phase difference is 0.
-    const double phase_shift = yap::deg<double>(std::arg(bw(p[0] * p[0])));
+    const double phase_shift = yap::deg(std::arg(bw(p[0] * p[0])));
     double cumulative_phase  = 0.; //phase_shift;
     std::ofstream par_guess("output/par_guess.txt", std::ios::out); 
     par_guess << FittedFreeAmplitude::header() << std::endl;
@@ -284,7 +284,7 @@ const std::vector<double> guess_parameters(Fit& m) {
         // Evaluate the value of the BW on the lower edge of the bin.
         const auto BW_value = bw(p[i] * p[i]);
         const auto BW_magnitude = std::abs(BW_value);
-        const auto BW_ph_diff   = yap::deg<double>(std::arg(BW_value)) - cumulative_phase;
+        const auto BW_ph_diff   = yap::deg(std::arg(BW_value)) - cumulative_phase;
 
         // Store magnitude and phase difference in a vector (useful for indeces).
         const std::vector<double> guess_pars({normalization * BW_magnitude, BW_ph_diff});

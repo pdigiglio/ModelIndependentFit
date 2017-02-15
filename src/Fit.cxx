@@ -132,7 +132,7 @@ void Fit::setParameters(const std::vector<double>& p) {
 
         // Add the phase difference to the cumulative phase.
         cumulative_phase += p[phase_parameter_index(fa, FitModel_)];
-        *fa = std::polar<double>(amplitude, yap::rad<double>(cumulative_phase));
+        *fa = std::polar<double>(amplitude, yap::rad(cumulative_phase));
     }
 
     // Evaluate the integral of the model (with the new parameters).
@@ -163,7 +163,7 @@ void Fit::setParameters(const std::vector<double>& p) {
      // Make sure that the free amplitudes correspond to the parametes.
      double cumulative_phase = 0.;
      for (size_t i = 0; i < FitModel_->freeAmplitudes().size(); ++ i) {
-         const auto A = std::polar<double>(p[2 * i], yap::rad<double>(p[2 * i + 1] + cumulative_phase));
+         const auto A = std::polar<double>(p[2 * i], yap::rad(p[2 * i + 1] + cumulative_phase));
          cumulative_phase += p[2 * i + 1];
 
          assert(FitModel_->freeAmplitudes()[i]->value() == A);
