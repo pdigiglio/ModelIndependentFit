@@ -59,6 +59,10 @@ public:
     /// Access the YAP model.
     const std::unique_ptr<yap::Model>& model() const noexcept;
 
+    /// Returns the fit model.
+    const std::shared_ptr<const FitModel> fitModel() const noexcept
+    { return FitModel_; }
+
     /// @brief Sets the range of the parameter corresponding to the amplitude of _fa_.
     /// @param fa   The free amplitude whose parameter value one wants to fix.
     /// @param low  The lower boundary of the range.

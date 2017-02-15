@@ -9,7 +9,7 @@
 #include <BAT/BCAux.h>
 
 #include "Fit.h"
-#include "FitModel.h" // for guess_parameters, write_fit... TODO: make another header
+#include "model/model_independent_d3pi.h"
 
 #include <iostream>
 #include <memory>

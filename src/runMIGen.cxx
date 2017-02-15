@@ -10,23 +10,28 @@
 
 
 #include "DataGenerator.h"
-#include "FitModel.h"
-#include "parallelism.h"
+#include "ModelIndependentFitModel.h"
 
-#include <DataSet.h>
-#include <logging.h>
+#include "model/model_independent_d3pi.h"
 
-#include <chrono>
-#include <ratio>
+//#include <DataSet.h>
+//#include <logging.h>
+//
+//#include <chrono>
+//#include <ratio>
 
-using namespace std;
-using namespace yap;
 
-int main()
-{
-    plainLogs(el::Level::Info);
+int main() {
+    using namespace std;
+    using namespace yap;
 
-    const auto m(std::make_unique<DataGenerator>(std::make_shared<const FitModel>(d3pi())));
+//    plainLogs(el::Level::Info);
+
+//    // Generate a binned model with the bin amplitudes obtained from the fit results.
+//    const auto m(std::make_unique<DataGenerator>(binned_d3pi_from_file("output/par_fit.txt"), "model_independent"));
+
+    // Generate a binned model with the bin amplitudes guessed from the f0 mass shape.
+    const auto m(std::make_unique<DataGenerator>(binned_d3pi("binned"), "binned_guessed"));
 
     // open log file
     BCLog::OpenLog("try_output/" + m->GetSafeName() + "_log.txt", BCLog::detail, BCLog::detail);
@@ -37,7 +42,7 @@ int main()
     m->SetMinimumEfficiency(0.15);
     m->SetMaximumEfficiency(0.35);
 
-    m->SetNIterationsRun(static_cast<int>(1e7 / m->GetNChains()));
+    m->SetNIterationsRun(static_cast<int>(2e6 / m->GetNChains()));
 
     m->WriteMarkovChain("try_output/" + m->GetSafeName() + "_mcmc.root", "RECREATE", true, false);
 

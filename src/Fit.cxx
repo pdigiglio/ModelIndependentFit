@@ -6,8 +6,11 @@
 
 #include "Fit.h"
 
+#include "model/model_independent_d3pi.h"
+
 #include "CachedIntegrator.h"
 #include "FitModel.h"
+#include "ModelIndependentFitModel.h"
 #include "OnTheFlyIntegrator.h"
 #include "RootFileHandler.h"
 #include "RootFitData.h"
@@ -199,7 +202,7 @@ std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, co
     using Integrator = CachedIntegrator;
 
     // Create a model to fit the data.
-    const std::shared_ptr<FitModel> fit_model(make_fit_model(model_name));
+    const std::shared_ptr<FitModel> fit_model(binned_d3pi(model_name));
 //    assert(fit_model->freeAmplitudes().size() == 22);
 
     // Create the integrator.

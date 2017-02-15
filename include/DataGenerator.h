@@ -28,6 +28,9 @@ public:
     explicit DataGenerator(std::shared_ptr<const FitModel> fit_model,
                            const std::string model_name = "");
 
+    /// _Default_ destructor.
+    ~DataGenerator();
+
     /// @brief The logarithm of the likelihood function.
     /// @param p The (unused) model parameters.
     double LogLikelihood(const std::vector<double>& p) final;

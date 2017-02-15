@@ -15,11 +15,17 @@ set(sources
     FitResultFileIterator.cxx
     FittedFreeAmplitude.cxx
     MassBin.cxx
+    ModelIndependentFitModel.cxx
     OnTheFlyIntegrator.cxx
     RootFileHandler.cxx
     RootFitData.cxx
     TTreeHandler.cxx
     parallelism.cxx)
+
+# Add the models
+set(sources ${sources}
+    model/model_independent_d3pi.cxx
+    model/d3pi.cxx)
 
 # Make output directory for the generated data
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)

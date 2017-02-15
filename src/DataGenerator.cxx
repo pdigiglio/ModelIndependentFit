@@ -56,6 +56,8 @@ DataGenerator::DataGenerator(std::shared_ptr<const FitModel> fit_model,
     }
 }
 
+DataGenerator::~DataGenerator() = default;
+
 double DataGenerator::LogLikelihood(const std::vector<double>& p) {
     const auto c = GetCurrentChain();
     // XXX why?

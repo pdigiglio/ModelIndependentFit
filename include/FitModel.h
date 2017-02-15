@@ -20,6 +20,7 @@
 #include <MassAxes.h>
 #include <Model.h>
 
+#include <iosfwd>
 #include <memory>
 #include <vector>
 
@@ -93,28 +94,10 @@ template <typename T>
 inline std::unique_ptr<yap::Model> make_model()
 { return std::make_unique<yap::Model>(std::make_unique<T>()); }
 
-/// @brief Helper function to set up the model for generating MC data.
-std::unique_ptr<yap::Model> d3pi();
-
-/// @brief Makes a new binned model 
-std::unique_ptr<yap::Model> d3pi_binned(const std::string& file_name);
-
-/// @brief Creates a new FitModel instance.
-/// @param model_name The name of the model.
-std::unique_ptr<FitModel> make_fit_model(const std::string& model_name);
-
-/// @brief Attempts an initial guess for the fit parameters based on the model used to generate MC data.
-/// @param m (What is it for?)
-const std::vector<double> guess_parameters(Fit& m);
-
 /// Returns the index of a free amplitude in the FreeAmplitude vector of the fit model.
 /// @param fa        The free amplitude to query for.
 /// @param fit_model The model in which to look for the free amplitude.
 /// @throw yap::exceptions::Exception If the free queried free amplitude is not in the vector.
 const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa, const std::shared_ptr<const FitModel>& fit_model);
-
-/// @brief Prints the fit parameters in an output text file.
-/// @param m The Fit model whose parameters to print.
-void write_fit_result_to_file(Fit& m);
 
 #endif
