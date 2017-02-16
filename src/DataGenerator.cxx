@@ -27,9 +27,8 @@
 #include <type_traits>
 #include <vector>
 
-DataGenerator::DataGenerator(std::shared_ptr<const FitModel> fit_model,
-                             const std::string model_name) :
-    BCModel(model_name),
+DataGenerator::DataGenerator(std::shared_ptr<const FitModel> fit_model) :
+    BCModel(fit_model->name()),
     FitModel_(fit_model),
     Data_(GetNChains(), FitModel_->model()->createDataSet(1)) // XXX why?
 {
