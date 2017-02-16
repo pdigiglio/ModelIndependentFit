@@ -12,13 +12,11 @@
 #ifndef  MODEL_INDEPENDENT_FIT_MODEL_H
 #define  MODEL_INDEPENDENT_FIT_MODEL_H
 
-#include "fwd/Fit.h"
-
 #include <fwd/Model.h>
 
 #include "FitModel.h"
 
-#include <iosfwd>
+#include <string>
 #include <vector>
 
 /// Class to handle a YAP model that will perform a model-independent fit.
@@ -31,14 +29,17 @@ public:
     /// @param model_name     The (optional) name of the model.
     explicit ModelIndependentFitModel(std::unique_ptr<yap::Model> model,
                                       const std::vector<double>& mass_partition,
-                                      const std::string model_name = "") :
-        FitModel(std::move(model), model_name),
-        MassPartition_(mass_partition)
-    {}
+                                      const std::string model_name = "");
 
     /// Return the Dalitz-plot mass partition.
     const std::vector<double>& massPartition() const noexcept
     { return MassPartition_; }
+
+    /// Check if the MassBin's associated with the FreeAmplitude's are sorted like the mass partition.
+    const bool massBinSorted() const noexcept;
+
+    /// Sort the bin free amplitudes.
+    void sortBinFreeAmplitudes();
 
 private:
     /// The partition of the Dalitz-plot mass range.

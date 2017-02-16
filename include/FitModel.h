@@ -100,4 +100,5 @@ inline std::unique_ptr<yap::Model> make_model()
 /// @throw yap::exceptions::Exception If the free queried free amplitude is not in the vector.
 const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa, const std::shared_ptr<const FitModel>& fit_model);
 
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa, const FitModel& fit_model);
 #endif

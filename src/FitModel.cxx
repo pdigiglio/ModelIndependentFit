@@ -74,6 +74,11 @@ const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude
 }
 
 const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                  const FitModel& fit_model) {
+    return free_amplitude_index(fa, fit_model.freeAmplitudes());
+}
+
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
                                   const std::shared_ptr<const FitModel>& fit_model) {
     return free_amplitude_index(fa, fit_model->freeAmplitudes());
 }

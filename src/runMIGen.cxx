@@ -10,16 +10,11 @@
 
 
 #include "DataGenerator.h"
+#include "FitModel.h"
 #include "ModelIndependentFitModel.h"
 
+#include "model/d3pi.h"
 #include "model/model_independent_d3pi.h"
-
-//#include <DataSet.h>
-//#include <logging.h>
-//
-//#include <chrono>
-//#include <ratio>
-
 
 int main() {
     using namespace std;
@@ -31,7 +26,9 @@ int main() {
 //    const auto m(std::make_unique<DataGenerator>(binned_d3pi_from_file("output/par_fit.txt"), "model_independent"));
 
     // Generate a binned model with the bin amplitudes guessed from the f0 mass shape.
-    const auto m(std::make_unique<DataGenerator>(binned_d3pi("binned"), "binned_guessed"));
+    const auto m(std::make_unique<DataGenerator>(binned_d3pi("binned_f0"), "binned_f0"));
+
+//    const auto m(std::make_unique<DataGenerator>(std::make_shared<FitModel>(d3pi(), "f0"), "f0"));
 
     // open log file
     BCLog::OpenLog("try_output/" + m->GetSafeName() + "_log.txt", BCLog::detail, BCLog::detail);
