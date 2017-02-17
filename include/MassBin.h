@@ -23,10 +23,10 @@ public:
     /// \param upper_edge The upper value of the mass.
     explicit MassBin(double lower_edge, double upper_edge);
 
-    const std::shared_ptr<yap::PositiveRealParameter>& lowerEdge() const noexcept
+    const std::shared_ptr<const yap::PositiveRealParameter> lowerEdge() const noexcept
     { return LowerEdge_; }
 
-    const std::shared_ptr<yap::PositiveRealParameter>& upperEdge() const noexcept
+    const std::shared_ptr<const yap::PositiveRealParameter> upperEdge() const noexcept
     { return UpperEdge_; }
 
     using MassShape::calculate;
