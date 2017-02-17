@@ -44,6 +44,11 @@ struct FittedFreeAmplitude {
 
     /// Returns a header for the output fit-result file.
     static std::string header() noexcept;
+
+    /// @brief Returns a footer for the output fit-result file.
+    /// @details This will be the upper edge of the last bins and 0's for all the other entries.
+    /// @param upper_edge The upper edge of the last bin.
+    static std::string footer(double upper_edge) noexcept;
 };
 
 /// Output stream iterator for the FittedFreeAmplitude.
