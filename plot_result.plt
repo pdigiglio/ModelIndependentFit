@@ -39,3 +39,17 @@ plot "par_fit.txt"   using 1:2           with steps       notitle, \
      "par_guess.txt" using 1:2           with linespoints title "Guess parameters",
 
      #"par_guess.txt" using 1:(norm * $2) with linespoints title "(15.9/.9394) * guess par"
+
+set terminal qt 3
+
+set title "Fit result of the S-wave decay intensity in D^+ -> {/Symbol p}^+ {/Symbol p}^- {/Symbol p}^+"
+set xlabel "Re(bin amplitude)"
+set ylabel "Im(bin amplitude)"
+
+set autoscale
+# I can't yet manage to unset this!
+set size square
+plot "par_guess.txt" using ($2 * cos(acos(-1) * $6 / 180)):($2 * sin(acos(-1) * $6 / 180)) with linespoints title "Guess parameters", \
+     "par_fit.txt" using ($2 * cos(acos(-1) * $6 / 180)):($2 * sin(acos(-1) * $6 / 180)) with linespoints title "Fit parameters", \
+
+unset size 
