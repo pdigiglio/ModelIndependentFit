@@ -64,14 +64,8 @@ const bool ModelIndependentFitModel::massBinSorted() const noexcept {
         // Get the position of the free amplitude in the free-amplitude vector.
         const auto i = free_amplitude_index(fa, *this);
 
-        // Check that the position in the vector corresponds to the bin number.
-//        assert(i == bin_number(fa));
-        if (i != bin_number(fa))
-            return false;
-
-        const auto bin_name = "Bin(" + std::to_string(i) + ")";
-        const auto bin = std::static_pointer_cast<const yap::DecayingParticle>(yap::particle(*model(), yap::is_named(bin_name)));
-        const auto mass_bin = std::static_pointer_cast<const MassBin>(bin->massShape());
+        // Get the mass shape of the free amplitude.
+        const auto mass_bin = bin_mass_shape(fa, *this);
 
 //        assert(mass_bin->lowerEdge()->value() == massPartition()[i]);
         if (mass_bin->lowerEdge()->value() != massPartition()[i])
@@ -88,4 +82,20 @@ const bool ModelIndependentFitModel::massBinSorted() const noexcept {
 void ModelIndependentFitModel::sortBinFreeAmplitudes() {
     std::sort(std::begin(freeAmplitudes()), std::end(freeAmplitudes()),
               [](const auto& lhs, const auto& rhs) { return bin_number(lhs) < bin_number(rhs); } );
+}
+
+std::shared_ptr<const MassBin> bin_mass_shape(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                              const ModelIndependentFitModel& M) {
+
+    // Get the position of the free amplitude in the free-amplitude vector.
+    const auto i = free_amplitude_index(fa, M);
+
+    // Check that the position in the vector corresponds to the bin number.
+    if (i != bin_number(fa))
+        throw yap::exceptions::Exception("Bin free amplitudes are not sorted", "bin_mass_shape");
+
+    const auto bin_name = "Bin(" + std::to_string(i) + ")";
+    const auto bin = std::static_pointer_cast<const yap::DecayingParticle>(yap::particle(*M.model(), yap::is_named(bin_name)));
+
+    return std::static_pointer_cast<const MassBin>(bin->massShape());
 }

@@ -12,6 +12,7 @@
 #ifndef  MODEL_INDEPENDENT_FIT_MODEL_H
 #define  MODEL_INDEPENDENT_FIT_MODEL_H
 
+#include "fwd/MassBin.h"
 #include <fwd/Model.h>
 
 #include "FitModel.h"
@@ -45,5 +46,12 @@ private:
     /// The partition of the Dalitz-plot mass range.
     const std::vector<double> MassPartition_;
 };
+
+/// @brief Returns the mass shape of the bin corresponding to _fa_.
+/// @param fa The free amplitude whose associated mass bin to access.
+/// @param M  The model in which to look for the mass bin associated to _fa_.
+/// @exception yap::Exception If the bin free amplitudes are not correctly sorted.
+std::shared_ptr<const MassBin> bin_mass_shape(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                              const ModelIndependentFitModel& M);
 
 #endif
