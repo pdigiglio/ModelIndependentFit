@@ -56,8 +56,11 @@ std::unique_ptr<TGraph> phase_graph(const std::vector<double>& bin_low_edges,
     // Vector of free-amplitude phases.
     std::vector<double> phases;
     phases.reserve(fas.size());
+
+    const auto fp = yap_to_fit_parameters(fas);
+    const auto phase_shift = yap::deg(std::arg(fas[0]->value())) - fp[1];
     std::transform(std::begin(fas), std::end(fas), std::back_inserter(phases),
-                   [&](const auto& fa) { return yap::deg(std::arg(fa->value())); });
+                   [&](const auto& fa) { return yap::deg(std::arg(fa->value())) - phase_shift; });
 
     return std::make_unique<TGraph>(phases.size(), bin_low_edges.data(), phases.data());
 }
@@ -124,7 +127,6 @@ void RealTimeParameterPlot::setCurrentParameters(const std::vector<std::complex<
 
     for (size_t i = 0; i < p.size(); ++ i) {
         FitAmplitude_->SetPoint(i, mass_partition[i], std::abs(p[i]));
-        // TODO take phase shifting into account
         FitPhase_->SetPoint(i, mass_partition[i], yap::deg(std::arg(p[i])));
     }
 
