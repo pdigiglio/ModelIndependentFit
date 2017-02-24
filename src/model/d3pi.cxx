@@ -49,7 +49,9 @@ std::unique_ptr<yap::Model> d3pi()
     auto D = DecayingParticle::create(F["D+"], FitModel::radialSize());
 
 	// Vector of the intermediate resonance names.
-	const std::vector<std::string> resonance_names({"f_0", "rho0"});
+//	const std::vector<std::string> resonance_names({"f_0", "rho0"});
+	const std::vector<std::string> resonance_names({"f_0", "f_0(1500)"});
+//	const std::vector<std::string> resonance_names({"f_0"});
 	// Create the decay tree based on the previous resonance names.
 	for (const auto& rn : resonance_names) {
 		// Create the resonance.
@@ -58,12 +60,12 @@ std::unique_ptr<yap::Model> d3pi()
 		// Set the resonance daughter particles.
 		r->addWeakDecay(piPlus, piMinus);
 
-		// Broaden the f_0's width.
-		if (rn == "f_0") {
-			auto w = static_pointer_cast<BreitWigner>(r->massShape())->width();
-			w->setValue(4. * w->value());
-//			std::cout << "Width " << w->value() << std::endl;
-		}
+//		// Broaden the f_0's width.
+//		if (rn == "f_0") {
+//			auto w = static_pointer_cast<BreitWigner>(r->massShape())->width();
+//			w->setValue(4. * w->value());
+////			std::cout << "Width " << w->value() << std::endl;
+//		}
 
 		// Add the resonance to the D decay.
 		D->addWeakDecay(r, piPlus);

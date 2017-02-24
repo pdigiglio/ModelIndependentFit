@@ -39,8 +39,8 @@ FitModel::FitModel(std::unique_ptr<yap::Model> m,
     if (!model())
         throw yap::exceptions::Exception("Model nullptr", "FitModel::FitModel");
 
+    assert(model()->locked());
     // Check for consistency
-    model()->lock();
     if (!model()->consistent())
         throw yap::exceptions::Exception("Model inconsistent", "FitModel::FitModel");
 
@@ -54,16 +54,43 @@ FitModel::FitModel(std::unique_ptr<yap::Model> m,
 
     // Copy the non-fixed FreeAmplitude's in the internal storage.
     const auto model_fas = yap::free_amplitudes(*model());
-    std::copy_if(std::begin(model_fas), std::end(model_fas), std::back_inserter(FreeAmplitudes_),
+    
+    // Select the free amplitudes.
+    yap::FreeAmplitudeVector tmp_fas;
+    tmp_fas.reserve(model_fas.size());
+    std::copy_if(std::begin(model_fas), std::end(model_fas), std::back_inserter(tmp_fas),
                  [](const typename yap::FreeAmplitudeVector::value_type& fa)
                  { return fa->variableStatus() != yap::VariableStatus::fixed; } );
+
+    // Make the free amplitudes constant.
+    std::transform(std::begin(tmp_fas), std::end(tmp_fas), std::back_inserter(FreeAmplitudes_),
+                   [](const auto& fa){ return std::static_pointer_cast<const yap::FreeAmplitude>(fa); });
+}
+
+void FitModel::setParameters(const std::vector<std::complex<double>>& p) noexcept {
+    assert(freeAmplitudes().size() == p.size());
+
+    // Here I'll cast the constantness of the FreeAmplitudes away!
+    for (size_t i = 0; i < freeAmplitudes().size(); ++ i)
+        *std::const_pointer_cast<yap::FreeAmplitude>(freeAmplitudes()[i]) = p[i];
+}
+
+void FitModel::fixParameters(const std::vector<std::complex<double>>& p) noexcept {
+    assert(freeAmplitudes().size() == p.size());
+
+    // Here I'll cast the constantness of the FreeAmplitudes away!
+    for (size_t i = 0; i < freeAmplitudes().size(); ++ i) {
+        const auto fa = std::const_pointer_cast<yap::FreeAmplitude>(freeAmplitudes()[i]);
+        *fa = p[i];
+        fa->variableStatus() = yap::VariableStatus::fixed;
+    }
 }
 
 FitModel::~FitModel() = default;
 
 // Helper function to find the index of a FreeAmplitude in the parameter vector.
 const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
-                                  const yap::FreeAmplitudeVector& fas) {
+                                  const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& fas) {
     using namespace std;
     const auto it = find(begin(fas), end(fas), fa);
 

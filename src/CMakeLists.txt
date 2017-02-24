@@ -15,8 +15,11 @@ set(sources
     FitResultFileIterator.cxx
     FittedFreeAmplitude.cxx
     MassBin.cxx
+    MassRangePartition.cxx
     ModelIndependentFitModel.cxx
     OnTheFlyIntegrator.cxx
+    RealTimeParameterPlot.cxx
+    RealTimePlotModelIndependentFitModel.cxx
     RootFileHandler.cxx
     RootFitData.cxx
     TTreeHandler.cxx
@@ -43,8 +46,12 @@ set(programs runmiFit runMIGen)
 
 foreach(program ${programs})
     add_executable(${program} EXCLUDE_FROM_ALL ${program}.cxx ${sources})
-    target_link_libraries(${program} ${ROOT_LIBS} ${BAT_LIBRARIES} YAP)
+    target_link_libraries(${program} ${ROOT_LIBARIES} ${BAT_LIBRARIES} YAP)
 endforeach(program)
+
+# Compile the root conversion utility
+add_executable(root_to_txt EXCLUDE_FROM_ALL root_to_txt.cxx)
+target_link_libraries(root_to_txt ${ROOT_LIBRARIES})
 
 # Make sure the script is linked
 add_dependencies(runmiFit link-run-script link-plot-script)

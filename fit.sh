@@ -36,8 +36,9 @@ then
     exit 1
 fi
 
-model_name="f0_rho0"
-root_file="D3PI_${model_name}_RESONANCE_mcmc.root"
+model_name="f0_f01500"
+root_file="${model_name}_mcmc.root"
+#root_file="model_mcmc.root"
 if [ ! -f "$directory/$root_file" ]
 then
     echo "$root_file is not a regular file."

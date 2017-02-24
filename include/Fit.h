@@ -16,6 +16,7 @@
 
 #include <BAT/BCModel.h>
 
+#include <complex>
 #include <memory>
 #include <string>
 
@@ -86,13 +87,25 @@ private:
     /// The model integrator.
     const std::unique_ptr<FitIntegrator> Integrator_;
 
-    /// @brief Sets the free amplitudes to the values of _p_.
-    /// @details This is the function where one can interpret the parameters
-    /// as they want through the mathematical function one uses to assign them
-    /// to the free amplitudes.
-    /// @param p The new value of the free amplitudes.
-    void setParameters(const std::vector<double>& p);
+    /// Helper function to get the FitModel free amplitudes.
+    const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& freeAmplitudes() const noexcept;
 };
+
+/// @brief Converts the fit parameters into FreeAmplitude's.
+/// @details This is the function that actually interprets the fit parameters, as
+/// they will have a different meaning depending on the function that is applied
+/// to them during the conversion.
+/// @param p The BAT fit parameters.
+std::vector<std::complex<double>> fit_to_yap_parameters(const std::vector<double>& p) noexcept;
+
+/// @brief Converts the complex free-amplitude parameters into fit amplitudes.
+/// @attention This should be the inverse of `fit_to_yap_parameters`.
+/// @param p The YAP parameters.
+std::vector<double> yap_to_fit_parameters(const std::vector<std::complex<double>>& p) noexcept;
+
+/// @brief Converts the complex free-amplitude parameters into fit amplitudes.
+/// @param fas The vector of free amplitudes.
+std::vector<double> yap_to_fit_parameters(const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& fas) noexcept;
 
 /// @brief Helper function to create a Fit class.
 /// @param file_path  The directory of the input ROOT file.

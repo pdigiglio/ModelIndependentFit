@@ -20,7 +20,8 @@
 #include <VariableStatus.h>
 
 #include <cassert>
-#include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <iterator>
 #include <memory>
 #include <string>

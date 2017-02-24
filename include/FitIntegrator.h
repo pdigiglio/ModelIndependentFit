@@ -21,7 +21,14 @@
 #include <functional>
 #include <random>
 
-/// Abstract base class for sample-integrators of the intensity over the model.
+/// @defgroup Integrators
+/// @brief Classes to evaluate the intensity of a model.
+/// @details The intensity of a data point is it's squared decay amplitude, i.e. \f$I(d) = |A(d)|^2\f$,
+///          being _d_ a data point in the phase space. So these classes return \f$I = \sum_d I(d)\f$
+///          for a given decay model.
+
+/// @ingroup Integrators
+/// @brief Abstract base class for sample-integrators of the intensity over the model.
 class FitIntegrator {
 public: 
 

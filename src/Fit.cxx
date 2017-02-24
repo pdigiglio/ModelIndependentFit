@@ -11,6 +11,7 @@
 #include "CachedIntegrator.h"
 #include "FitModel.h"
 #include "ModelIndependentFitModel.h"
+#include "RealTimePlotModelIndependentFitModel.h"
 #include "OnTheFlyIntegrator.h"
 #include "RootFileHandler.h"
 #include "RootFitData.h"
@@ -71,7 +72,7 @@ Fit::Fit(std::shared_ptr<FitModel> fit_model,
     Integrator_(std::move(integrator))
 {
     // Loop over the non-fixed free amplitudes and add them to the fit parameters.
-    for (const auto& fa : FitModel_->freeAmplitudes()) {
+    for (const auto& fa : freeAmplitudes()) {
         const auto fa_name = free_amplitude_name(*fa);
 #ifndef NDEBUG
         std::cout << "Add parameter for decay mode " << fa_name << std::endl;
@@ -82,7 +83,7 @@ Fit::Fit(std::shared_ptr<FitModel> fit_model,
         GetParameters().Back().SetPriorConstant();
 
         constexpr double upper_phase_range = 180.;
-        AddParameter("d_phi(" + fa_name + ")", 0., upper_phase_range);
+        AddParameter("d_phi(" + fa_name + ")", -upper_phase_range, upper_phase_range);
         GetParameters().Back().SetPriorConstant();
         
         // Add observables to get the real and imaginary parts of the amplitudes
@@ -105,7 +106,9 @@ double Fit::LogLikelihood(const std::vector<double>& pars)
 {
     // Sets the new values for the model free amplitudes and
     // evaluates the model integral matrix.
-    setParameters(pars);
+    std::static_pointer_cast<RealTimePlotModelIndependentFitModel>(FitModel_)->setParameters(fit_to_yap_parameters(pars));
+    // Evaluate the integral of the model (with the new parameters).
+    Integrator_->integrate();
 
     // Sums up the components of the integral matrix and takes its log.
     const auto model_integral = log(integral(Integrator_->modelIntegral()).value());
@@ -119,24 +122,6 @@ double Fit::LogLikelihood(const std::vector<double>& pars)
     FitModel_->model()->setParameterFlagsToUnchanged();
 
     return L;
-}
-
-// ---------------------------------------------------------
-void Fit::setParameters(const std::vector<double>& p) {
-    assert(p.size() == 2 * FitModel_->freeAmplitudes().size());
-
-    // Update the free-amplitude values.
-    double cumulative_phase = 0.;
-    for (auto& fa : FitModel_->freeAmplitudes()) {
-        const auto amplitude = p[amplitude_parameter_index(fa, FitModel_)];
-
-        // Add the phase difference to the cumulative phase.
-        cumulative_phase += p[phase_parameter_index(fa, FitModel_)];
-        *fa = std::polar<double>(amplitude, yap::rad(cumulative_phase));
-    }
-
-    // Evaluate the integral of the model (with the new parameters).
-    Integrator_->integrate();
 }
 
 // ---------------------------------------------------------
@@ -160,14 +145,20 @@ void Fit::setParameters(const std::vector<double>& p) {
      }
 
 #ifndef NDEBUG
-     // Make sure that the free amplitudes correspond to the parametes.
-     double cumulative_phase = 0.;
-     for (size_t i = 0; i < FitModel_->freeAmplitudes().size(); ++ i) {
-         const auto A = std::polar<double>(p[2 * i], yap::rad(p[2 * i + 1] + cumulative_phase));
-         cumulative_phase += p[2 * i + 1];
-
-         assert(FitModel_->freeAmplitudes()[i]->value() == A);
+     {
+         // Make sure that the free amplitudes correspond to the parametes.
+         const auto yp = fit_to_yap_parameters(p);
+         assert(std::all_of(std::begin(FitModel_->freeAmplitudes()), std::end(FitModel_->freeAmplitudes()),
+                            [&](const auto& fa) { return fa->value() == yp[free_amplitude_index(fa, this->fitModel())]; }));
      }
+
+//     double cumulative_phase = 0.;
+//     for (size_t i = 0; i < FitModel_->freeAmplitudes().size(); ++ i) {
+//         const auto A = std::polar<double>(p[2 * i], yap::rad(p[2 * i + 1] + cumulative_phase));
+//         cumulative_phase += p[2 * i + 1];
+//
+//         assert(FitModel_->freeAmplitudes()[i]->value() == A);
+//     }
 #endif
 }
 
@@ -196,6 +187,57 @@ void Fit::setPhaseRange(const std::shared_ptr<const yap::FreeAmplitude>& fa, dou
 }
 
 // ---------------------------------------------------------
+const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& Fit::freeAmplitudes() const noexcept {
+    return fitModel()->freeAmplitudes();
+}
+
+// ---------------------------------------------------------
+std::vector<std::complex<double>> fit_to_yap_parameters(const std::vector<double>& p) noexcept {
+    // Check that the parameters are couple of real numbers.
+    assert(p.size() % 2 == 0);
+    
+    // The vector of YAP parameters.
+    std::vector<std::complex<double>> yap_params;
+    yap_params.reserve(p.size() / 2);
+
+    // Convert the parameters.
+    double cumulative_phase = 0.;
+    for (size_t i = 0; i < p.size() / 2; ++ i) {
+        cumulative_phase += p[2 * i + 1];
+        yap_params.emplace_back(std::polar<double>(p[2 * i], yap::rad(cumulative_phase)));
+    }
+
+    return yap_params;
+}
+
+// ---------------------------------------------------------
+std::vector<double> yap_to_fit_parameters(const std::vector<std::complex<double>>& p) noexcept {
+    std::vector<double> fit_params;
+    fit_params.reserve(2 * p.size());
+
+    // TODO don't hard-code this!!
+    double cumulative_phase = yap::deg(std::arg(*std::begin(p)));
+    for (const auto& yp : p) {
+        fit_params.push_back(std::abs(yp));
+        fit_params.push_back(yap::deg(std::arg(yp)) - cumulative_phase);
+
+        cumulative_phase += fit_params.back();
+    }
+
+    return fit_params;
+}
+
+// ---------------------------------------------------------
+std::vector<double> yap_to_fit_parameters(const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& fas) noexcept {
+    std::vector<std::complex<double>> p;
+    p.reserve(fas.size());
+    std::transform(std::begin(fas), std::end(fas), std::back_inserter(p),
+                   [] (const auto& fa) { return fa->value(); });
+
+    return yap_to_fit_parameters(p);
+}
+
+// ---------------------------------------------------------
 //template <typename Integrator,
 //          typename = std::enable_if_t<std::is_base_of<FitIntegrator, Integrator>::value>>
 std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name) {
@@ -215,18 +257,20 @@ std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, co
     // Create the BAT model for fitting the data.
     auto fit(std::make_unique<Fit>(fit_model, std::move(root_fit_data), std::move(integrator)));
 
-//    // Fix amplitudes in the fit
-//    {
-//        // Get the non-fixed free amplitudes.
-//        const auto fas = fit_model->freeAmplitudes();
+    // Fix amplitudes in the fit
+    {
+        // Get the non-fixed free amplitudes.
+        const auto fas = fit_model->freeAmplitudes();
 //        // Iterator to the last (valid) one.
 //        const auto fa  = std::prev(std::end(fas), 1);
 //
 //        // Fix the last amplitude.
 //        fit->fixAmplitude(*fa, 1);
-//        // Fix the first phase.
-//        fit->fixPhase(*begin(fas), 0);
-//    }
+
+        const auto guess_params = yap_to_fit_parameters(fas);
+        // Fix the first phase.
+        fit->fixPhase(*begin(fas), guess_params[1]);
+    }
 
     return fit;
 }

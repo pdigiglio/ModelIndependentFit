@@ -44,13 +44,13 @@ public:
     /// @brief Return the name of the data TTree.
     /// @todo try not to hard-code branch names.
     const std::string mcmcTreeName() const
-    { return "D3PI_f0_rho0_RESONANCE_mcmc"; }
+    { return "f0_f01500_mcmc"; }
 //    { return "D3PI_" + ModelName_ + "_RESONANCE_mcmc"; }
 
     /// @brief Return the name of the parameter TTree.
     /// @todo try not to hard-code branch names.
     const std::string parameterTreeName() const
-    { return "D3PI_f0_rho0_RESONANCE_parameters"; }
+    { return "f0_f01500_parameters"; }
 //    { return "D3PI_" + ModelName_ + "_RESONANCE_parameters"; }
 
     /// Return the ROOT file.
