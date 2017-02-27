@@ -24,7 +24,14 @@
 #include <memory>
 #include <vector>
 
-/// Wrapper for a `yap::Model` with some facility member function to make the model-indepentent fit easier.
+/// @defgroup Models
+/// @brief Wrappers around `yap::Model` that provide constant access to its `yap::FreeAmplitude`'s.
+/// @details The aim of these classes is to provide some utility function for the specific
+///          \f$D^+ \to\pi^+\pi^-\pi^+\f$ decay. Also, they should protect the `yap::Model`
+///          from erroneous changes during the fit process.
+
+/// @ingroup Models
+/// @brief Wrapper for a `yap::Model` with helper functions targeted to the \f$D^+ \to\pi^+\pi^-\pi^+\f$ decay.
 class FitModel {
 public:
     /// @brief Constructor.
@@ -126,7 +133,9 @@ inline std::unique_ptr<yap::Model> make_model()
 /// @param fa        The free amplitude to query for.
 /// @param fit_model The model in which to look for the free amplitude.
 /// @throw yap::exceptions::Exception If the free queried free amplitude is not in the vector.
-const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa, const std::shared_ptr<const FitModel>& fit_model);
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                  const std::shared_ptr<const FitModel>& fit_model);
 
-const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa, const FitModel& fit_model);
+const size_t free_amplitude_index(const std::shared_ptr<const yap::FreeAmplitude>& fa,
+                                  const FitModel& fit_model);
 #endif

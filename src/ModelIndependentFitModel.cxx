@@ -70,15 +70,15 @@ const bool ModelIndependentFitModel::massBinSorted() const {
     for (const auto& fa : freeAmplitudes()) {
         // Get the position of the free amplitude in the free-amplitude vector.
         const auto i = free_amplitude_index(fa, *this);
+        // Make sure that the position corresponds to the index in the vector.
+        assert(i == bin_number(fa));
 
         // Get the mass shape of the free amplitude.
         const auto mass_bin = bin_mass_shape(fa, *this);
 
-//        assert(mass_bin->lowerEdge()->value() == massPartition()[i]);
         if (mass_bin->lowerEdge()->value() != massRangePartition()->massPartition()[i])
             return false;
 
-//        assert(mass_bin->upperEdge()->value() == massPartition()[i+1]);
         if (mass_bin->upperEdge()->value() != massRangePartition()->massPartition()[i+1])
             return false;
     }

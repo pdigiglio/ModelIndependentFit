@@ -21,7 +21,8 @@
 #include <memory>
 #include <string>
 
-/// Wrapper for a `TTree` with error-checking facilities.
+/// @ingroup Root
+/// @brief Wrapper for a `TTree` with error-checking facilities.
 class TTreeHandler {
 public:
 

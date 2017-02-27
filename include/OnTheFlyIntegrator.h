@@ -23,7 +23,8 @@
 #include <functional>
 #include <random>
 
-/// Sample-integrator of the intensity over the model.
+/// @ingroup Integrators
+/// @brief Sample-integrator of the intensity over the model.
 class OnTheFlyIntegrator : public FitIntegrator {
 public:
     /// Function for generating new points for integration.

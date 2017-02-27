@@ -20,7 +20,8 @@
 
 #include <memory>
 
-/// Interfaces YAP with the input ROOT data file.
+/// @ingroup Root
+/// @brief Loads input data from a ROOT file and keeps it in a `yap::DataSet`.
 class RootFitData {
 public:
     /// @brief Constructor.

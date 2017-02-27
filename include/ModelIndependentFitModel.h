@@ -22,7 +22,9 @@
 #include <memory>
 #include <string>
 
-/// Class to handle a YAP model that will perform a model-independent fit.
+/// @ingroup Models
+/// @brief Class to handle a `yap::Model` that will be used to perform a model-independent fit.
+/// @attention The bin sorting relies on the mass-bin functions being named `Bin(i)`, being `i` an integer.
 class ModelIndependentFitModel : public FitModel {
 public:
 

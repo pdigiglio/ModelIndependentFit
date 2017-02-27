@@ -19,9 +19,10 @@
 
 #include "FitIntegrator.h"
 
+/// @ingroup Integrators
 /// @brief Sample-integrator of the intensity over the model.
 /// @details Its integration data set is evaluated once at construction time and cached.
-class CachedIntegrator : public FitIntegrator {
+class CachedIntegrator final : public FitIntegrator {
 public:
     /// @brief Constructor.
     /// @param fit_model The model according to which one wants to generate integration data.

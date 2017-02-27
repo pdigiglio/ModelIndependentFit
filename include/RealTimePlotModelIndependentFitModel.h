@@ -20,7 +20,8 @@
 #include <complex>
 #include <memory>
 
-/// Fit model for a model-independent fit that visualizes in real time a plot of its parameter vs. some reference parameters.
+/// @ingroup Models
+/// @brief Class to handle a `yap::Model` for a model-independent fit while showing a real-time plot of the fit parameters (useful for debugging).
 class RealTimePlotModelIndependentFitModel final : public ModelIndependentFitModel {
 public:
 
@@ -34,11 +35,14 @@ public:
                                                   std::unique_ptr<RealTimeParameterPlot> real_time_par_plot,
                                                   const std::string model_name = "");
 
+    /// @brief Constuctor from a ModelIndependentFitModel and a RealTimeParameterPlot.
+    /// @param mimf               The model to perform the model-independent fit.
+    /// @param real_time_par_plot The visualization tool.
     explicit RealTimePlotModelIndependentFitModel(ModelIndependentFitModel mimf,
-            std::unique_ptr<RealTimeParameterPlot> real_time_par_plot);
+                                                  std::unique_ptr<RealTimeParameterPlot> real_time_par_plot);
 
     /// @brief _Default_ destructor.
-    ~RealTimePlotModelIndependentFitModel();
+    ~RealTimePlotModelIndependentFitModel() final;
 
     /// @brief Sets the FreeAmplitude's in the model and plots them.
     /// @param p The BAT parameters to convert into YAP parameters.

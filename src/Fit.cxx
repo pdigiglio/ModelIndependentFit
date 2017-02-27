@@ -151,14 +151,6 @@ double Fit::LogLikelihood(const std::vector<double>& pars)
          assert(std::all_of(std::begin(FitModel_->freeAmplitudes()), std::end(FitModel_->freeAmplitudes()),
                             [&](const auto& fa) { return fa->value() == yp[free_amplitude_index(fa, this->fitModel())]; }));
      }
-
-//     double cumulative_phase = 0.;
-//     for (size_t i = 0; i < FitModel_->freeAmplitudes().size(); ++ i) {
-//         const auto A = std::polar<double>(p[2 * i], yap::rad(p[2 * i + 1] + cumulative_phase));
-//         cumulative_phase += p[2 * i + 1];
-//
-//         assert(FitModel_->freeAmplitudes()[i]->value() == A);
-//     }
 #endif
 }
 
