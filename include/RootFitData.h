@@ -43,7 +43,11 @@ public:
     { return Partitions_; }
 
     /// Returns the path where the input data file is contained.
-    const std::string path() const noexcept;
+    const std::string& path() const noexcept;
+
+    /// Returns the name of the model in the ROOT file.
+    const std::string& modelName() const noexcept;
+    
 
 private:
 

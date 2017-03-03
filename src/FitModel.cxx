@@ -67,23 +67,28 @@ FitModel::FitModel(std::unique_ptr<yap::Model> m,
                    [](const auto& fa){ return std::static_pointer_cast<const yap::FreeAmplitude>(fa); });
 }
 
-void FitModel::setParameters(const std::vector<std::complex<double>>& p) noexcept {
-    assert(freeAmplitudes().size() == p.size());
+void FitModel::setParameters(const std::vector<std::vector<std::complex<double>>>& p) noexcept {
+    // Linearize the parameter matrix.
+    std::vector<std::complex<double>> lp;
+    lp.reserve(std::accumulate(std::begin(p), std::end(p), size_t(0),
+                               [] (const size_t s, const auto& pars) { return s + pars.size(); }));
+    std::for_each(std::begin(p), std::end(p), [&](const auto& pars)
+                  { std::copy(std::begin(pars), std::end(pars), std::back_inserter(lp)); });
+
+    assert(freeAmplitudes().size() == lp.size());
+
 
     // Here I'll cast the constantness of the FreeAmplitudes away!
     for (size_t i = 0; i < freeAmplitudes().size(); ++ i)
-        *std::const_pointer_cast<yap::FreeAmplitude>(freeAmplitudes()[i]) = p[i];
+        *std::const_pointer_cast<yap::FreeAmplitude>(freeAmplitudes()[i]) = lp[i];
 }
 
-void FitModel::fixParameters(const std::vector<std::complex<double>>& p) noexcept {
+void FitModel::fixParameters(const std::vector<std::vector<std::complex<double>>>& p) noexcept {
     assert(freeAmplitudes().size() == p.size());
 
-    // Here I'll cast the constantness of the FreeAmplitudes away!
-    for (size_t i = 0; i < freeAmplitudes().size(); ++ i) {
-        const auto fa = std::const_pointer_cast<yap::FreeAmplitude>(freeAmplitudes()[i]);
-        *fa = p[i];
-        fa->variableStatus() = yap::VariableStatus::fixed;
-    }
+    setParameters(p);
+    std::for_each(std::begin(freeAmplitudes()), std::end(freeAmplitudes()), [](const auto& fa)
+                  { std::const_pointer_cast<yap::FreeAmplitude>(fa)->variableStatus() = yap::VariableStatus::fixed; });
 }
 
 FitModel::~FitModel() = default;

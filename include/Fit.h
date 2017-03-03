@@ -16,18 +16,18 @@
 
 #include <BAT/BCModel.h>
 
-#include <complex>
 #include <memory>
-#include <string>
 
 /// @brief The class that will perform the fit.
+/// @tparam FitModelType The type of the FitModel used to perform the fit.
+template <typename FitModelType = FitModel>
 class Fit final : public BCModel {
 public:
     /// @brief Constructor.
     /// @param fit_model  The decay model.
     /// @param fit_data   The data to fit the model to.
     /// @param integrator The model integrator.
-    explicit Fit(std::shared_ptr<FitModel> fit_model,
+    explicit Fit(std::shared_ptr<FitModelType> fit_model,
                  std::unique_ptr<RootFitData> fit_data,
                  std::unique_ptr<FitIntegrator> integrator);
 
@@ -54,14 +54,12 @@ public:
     /// @param value The value to fix the FreeAmplitude's phase to.
     void fixPhase(const std::shared_ptr<const yap::FreeAmplitude>& fa, const double value);
 
-    /// Returns the name of the log file.
-    const std::string logFileName() const noexcept;
-
-    /// Access the YAP model.
-    const std::unique_ptr<yap::Model>& model() const noexcept;
+    /// Return the fit data.
+    const std::unique_ptr<RootFitData>& rootFitData() const noexcept
+    { return Data_; }
 
     /// Returns the fit model.
-    const std::shared_ptr<const FitModel> fitModel() const noexcept
+    const std::shared_ptr<const FitModelType> fitModel() const noexcept
     { return FitModel_; }
 
     /// @brief Sets the range of the parameter corresponding to the amplitude of _fa_.
@@ -79,7 +77,7 @@ public:
 private:
 
     /// The fit model for the decay.
-    const std::shared_ptr<FitModel> FitModel_;
+    const std::shared_ptr<FitModelType> FitModel_;
 
     /// The data to fit the model to.
     const std::unique_ptr<RootFitData> Data_;
@@ -90,27 +88,5 @@ private:
     /// Helper function to get the FitModel free amplitudes.
     const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& freeAmplitudes() const noexcept;
 };
-
-/// @brief Converts the fit parameters into FreeAmplitude's.
-/// @details This is the function that actually interprets the fit parameters, as
-/// they will have a different meaning depending on the function that is applied
-/// to them during the conversion.
-/// @param p The BAT fit parameters.
-std::vector<std::complex<double>> fit_to_yap_parameters(const std::vector<double>& p) noexcept;
-
-/// @brief Converts the complex free-amplitude parameters into fit amplitudes.
-/// @attention This should be the inverse of `fit_to_yap_parameters`.
-/// @param p The YAP parameters.
-std::vector<double> yap_to_fit_parameters(const std::vector<std::complex<double>>& p) noexcept;
-
-/// @brief Converts the complex free-amplitude parameters into fit amplitudes.
-/// @param fas The vector of free amplitudes.
-std::vector<double> yap_to_fit_parameters(const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& fas) noexcept;
-
-/// @brief Helper function to create a Fit class.
-/// @param file_path  The directory of the input ROOT file.
-/// @param file_name  The name of the input ROOT file.
-/// @param model_name The name of the model.
-std::unique_ptr<Fit> create_fit(const char* file_path, const char* file_name, const char* model_name = "");
 
 #endif

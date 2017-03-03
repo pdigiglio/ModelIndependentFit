@@ -1,18 +1,17 @@
 /**
  *
- *    @file  Fit.h
+ *    @file  FreedWave.h
  *   @brief  
  *
- *    @date  02/05/17
+ *    @date  02/28/17
  *  @author  Paolo Di Giglio (github.com/pdigiglio),
  *           <p.digiglio91@gmail.com>
  *
  */
 
-#ifndef  FWD_FIT_INC
-#define  FWD_FIT_INC
+#ifndef  FWD_FREED_WAVE_H
+#define  FWD_FREED_WAVE_H
 
-template <typename T>
-class Fit;
+class FreedWave;
 
 #endif

@@ -36,7 +36,7 @@ then
     exit 1
 fi
 
-model_name="f0_f01500"
+model_name="f0_f2"
 root_file="${model_name}_mcmc.root"
 #root_file="model_mcmc.root"
 if [ ! -f "$directory/$root_file" ]

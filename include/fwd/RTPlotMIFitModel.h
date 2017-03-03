@@ -12,6 +12,6 @@
 #ifndef  FWD_REAL_TIME_PLOT_MODEL_INDEPENDENT_FIT_MODEL_H
 #define  FWD_REAL_TIME_PLOT_MODEL_INDEPENDENT_FIT_MODEL_H
 
-class RealTimePlotModelIndependentFitModel;
+class RTPlotMIFitModel;
 
 #endif

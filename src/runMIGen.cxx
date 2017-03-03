@@ -22,13 +22,13 @@ int main() {
 
 //    plainLogs(el::Level::Info);
 
-    // Generate a binned model with the bin amplitudes obtained from the fit results.
-    const auto m(std::make_unique<DataGenerator>(binned_d3pi_from_file("output/par_fit.txt", "f0_f0-1500_fit_result")));
+//    // Generate a binned model with the bin amplitudes obtained from the fit results.
+//    const auto m(std::make_unique<DataGenerator>(binned_d3pi_from_file("f0_f0_1500/par_fit.txt", "f0_f0-1500_fit_result")));
 
 //    // Generate a binned model with the bin amplitudes guessed from the f0 mass shape.
 //    const auto m(std::make_unique<DataGenerator>(binned_d3pi("binned_f0")));
 
-//    const auto m(std::make_unique<DataGenerator>(std::make_shared<FitModel>(d3pi(), "f0_f0-1500")));
+    const auto m(std::make_unique<DataGenerator>(std::make_shared<FitModel>(d3pi(), "f0_f2")));
 
     // open log file
     BCLog::OpenLog("try_output/" + m->GetSafeName() + "_log.txt", BCLog::detail, BCLog::detail);

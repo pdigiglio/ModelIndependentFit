@@ -117,5 +117,8 @@ RootFitData::RootFitData(std::unique_ptr<RootFileHandler> rfh,
     assert(Data_.size() == 1e5);
 }
 
-const std::string RootFitData::path() const noexcept
+const std::string& RootFitData::path() const noexcept
 { return RootFile_->path(); }
+
+const std::string& RootFitData::modelName() const noexcept
+{ return RootFile_->modelName(); }

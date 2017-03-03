@@ -11,9 +11,8 @@
 
 #include "RealTimeParameterPlot.h"
 
-#include "Fit.h"
+#include "parameter_handling.h"
 
-#include <FreeAmplitude.h>
 #include <MathUtilities.h>
 
 #include <TApplication.h>
@@ -25,42 +24,45 @@
 
 #include <algorithm>
 #include <cassert>
+#include <complex>
 #include <iterator>
 #include <memory>
+#include <string>
+#include <utility>
 #include <vector>
 
-TROOT gmroot("gmroot","GEM monitor ROOT interface");
+TROOT gmroot("", "");
 TApplication theApp("App", 0, 0);
 
 std::unique_ptr<TGraph> amplitude_graph(const std::vector<double>& bin_low_edges,
-                                        const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& fas) noexcept
+                                        const std::vector<std::complex<double>>& ms) noexcept
 {
-    // Check that there are as many parameters as bins.
-    assert(fas.size() == bin_low_edges.size());
+    // Check that there are as many points in the mass shape as bins.
+    assert(ms.size() == bin_low_edges.size());
 
-    // Vector of free-amplitude amplitudes.
+    // Vector of amplitudes.
     std::vector<double> amplitudes;
-    amplitudes.reserve(fas.size());
-    std::transform(std::begin(fas), std::end(fas), std::back_inserter(amplitudes),
-                   [](const auto& fa) { return std::abs(fa->value()); });
+    amplitudes.reserve(ms.size());
+    std::transform(std::begin(ms), std::end(ms), std::back_inserter(amplitudes),
+                   [](const auto& x) { return std::abs(x); });
 
     return std::make_unique<TGraph>(amplitudes.size(), bin_low_edges.data(), amplitudes.data());
 }
 
 std::unique_ptr<TGraph> phase_graph(const std::vector<double>& bin_low_edges,
-                                    const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& fas) noexcept
+                                    const std::vector<std::complex<double>>& ms) noexcept
 {
-    // Check that there are as many parameters as bins.
-    assert(fas.size() == bin_low_edges.size());
+    // Check that there are as many points in the mass shape as bins.
+    assert(ms.size() == bin_low_edges.size());
 
     // Vector of free-amplitude phases.
     std::vector<double> phases;
-    phases.reserve(fas.size());
+    phases.reserve(ms.size());
 
-    const auto fp = yap_to_fit_parameters(fas);
-    const auto phase_shift = yap::deg(std::arg(fas[0]->value())) - fp[1];
-    std::transform(std::begin(fas), std::end(fas), std::back_inserter(phases),
-                   [&](const auto& fa) { return yap::deg(std::arg(fa->value())) - phase_shift; });
+    const auto fp = yap_to_fit_parameters(ms);
+    const auto phase_shift = yap::deg(std::arg(ms.at(0))) - fp.at(1);
+    std::transform(std::begin(ms), std::end(ms), std::back_inserter(phases),
+                   [&](const auto& x) { return yap::deg(std::arg(x)) - phase_shift; });
 
     return std::make_unique<TGraph>(phases.size(), bin_low_edges.data(), phases.data());
 }
@@ -72,17 +74,18 @@ std::unique_ptr<TGraph> zero_graph(const std::vector<double>& bin_low_edges) noe
     return std::make_unique<TGraph>(zero_vector.size(), bin_low_edges.data(), zero_vector.data());
 }
 
-RealTimeParameterPlot::RealTimeParameterPlot(const std::vector<double>& bin_low_edges,
-                                             const std::vector<std::shared_ptr<const yap::FreeAmplitude>>& init_fas) noexcept :
-    AmplitudeCanvas_(std::make_unique<TCanvas>("faa", "Free-amplitude amplitude")),
-    FitAmplitude_(zero_graph(bin_low_edges)),
-    GuessAmplitude_(amplitude_graph(bin_low_edges, init_fas)),
-    PhaseCanvas_(std::make_unique<TCanvas>("fap", "Free-amplitude phase")),
-    FitPhase_(zero_graph(bin_low_edges)),
-    GuessPhase_(phase_graph(bin_low_edges, init_fas))
+RealTimeParameterPlot::RealTimeParameterPlot(binned_complex_function step_mass_shape,
+                                             const std::string& wave_name) noexcept :
+    AmplitudeCanvasName_(wave_name + " free-amplitude amplitude"),
+    AmplitudeCanvas_(std::make_unique<TCanvas>(AmplitudeCanvasName_.c_str(), AmplitudeCanvasName_.c_str())),
+    FitAmplitude_(zero_graph(step_mass_shape.second)),
+    GuessAmplitude_(amplitude_graph(step_mass_shape.second, step_mass_shape.first)),
+    PhaseCanvasName_(wave_name + " free-amplitude phase"),
+    PhaseCanvas_(std::make_unique<TCanvas>(PhaseCanvasName_.c_str(), PhaseCanvasName_.c_str())),
+    FitPhase_(zero_graph(step_mass_shape.second)),
+    GuessPhase_(phase_graph(step_mass_shape.second, step_mass_shape.first))
 {
-    // check that #bins == #parameters
-    assert(bin_low_edges.size() == init_fas.size());
+    assert(step_mass_shape.first.size() == step_mass_shape.second.size());
 
     // -- Associate plots to canvases ---
     assert(AmplitudeCanvas_);
@@ -90,10 +93,10 @@ RealTimeParameterPlot::RealTimeParameterPlot(const std::vector<double>& bin_low_
 //    GuessAmplitude_->SetTitle("Free-amplitude amplitude"); // XXX disappears after update
     GuessAmplitude_->GetXaxis()->SetTitle("Mass [GeV/c^2]");
     GuessAmplitude_->GetYaxis()->SetTitle("Amplitude");
-    GuessAmplitude_->SetLineColor(4);
+    GuessAmplitude_->SetLineColor(kBlue);
     GuessAmplitude_->Draw("A L*");
-    FitAmplitude_->SetLineColor(2);
-    FitAmplitude_->SetMarkerColor(2);
+    FitAmplitude_->SetLineColor(kRed); 
+    FitAmplitude_->SetMarkerColor(kRed);
     FitAmplitude_->Draw("SAME L*");
 
     assert(PhaseCanvas_);
@@ -101,10 +104,10 @@ RealTimeParameterPlot::RealTimeParameterPlot(const std::vector<double>& bin_low_
 //    GuessPhase_->SetTitle("Free-amplitude phase"); // XXX disappears after update
     GuessPhase_->GetXaxis()->SetTitle("Mass [GeV/c^2]");
     GuessPhase_->GetYaxis()->SetTitle("Phase [deg]");
-    GuessPhase_->SetLineColor(4);
+    GuessPhase_->SetLineColor(kBlue);
     GuessPhase_->Draw("A L*");
-    FitPhase_->SetLineColor(2);
-    FitPhase_->SetMarkerColor(2);
+    FitPhase_->SetLineColor(kRed);
+    FitPhase_->SetMarkerColor(kRed);
     FitPhase_->Draw("SAME L*");
     // ----------------------------------
 

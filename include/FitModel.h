@@ -32,6 +32,7 @@
 
 /// @ingroup Models
 /// @brief Wrapper for a `yap::Model` with helper functions targeted to the \f$D^+ \to\pi^+\pi^-\pi^+\f$ decay.
+/// @todo Remove this class as it's logically no longer the base class for the ModelIndependentFitModel.
 class FitModel {
 public:
     /// @brief Constructor.
@@ -91,11 +92,11 @@ public:
 
     /// @brief Sets the FreeAmplitude's in the model.
     /// @param p The value to which the amplitudes should be set.
-    virtual void setParameters(const std::vector<std::complex<double>>& p) noexcept;
+    virtual void setParameters(const std::vector<std::vector<std::complex<double>>>& p) noexcept;
 
     /// @brief Sets the FreeAmplitude's in the model and make them fixed.
     /// @param p The value to which the amplitudes should be set.
-    void fixParameters(const std::vector<std::complex<double>>& p) noexcept;
+    virtual void fixParameters(const std::vector<std::vector<std::complex<double>>>& p) noexcept;
 
 private:
 

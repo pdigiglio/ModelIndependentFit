@@ -12,9 +12,12 @@
 #ifndef  MASS_RANGE_PARTITION_H
 #define  MASS_RANGE_PARTITION_H
 
+#include <complex>
+#include <functional>
 #include <utility>
 #include <vector>
 
+/// @brief Class to partition a mass range.
 class MassRangePartition {
 public:
     /// @brief The region type.
@@ -62,5 +65,22 @@ std::vector<double> bins(const double x, const MassRangePartition& mrp);
 /// @param mrp The mass-range partition whose binning to use.
 inline const std::vector<double> bin_centers(const MassRangePartition& mrp) noexcept
 { return bins(.5, mrp); }
+
+/// @brief Return the values of the mass shape on samples evaluated from the mass partition.
+/// @param mass_shape           The mass shape one wants to evaluate.
+/// @param mass_range_partition The mass partition to sample the mass shape.
+/// @param samples_per_bin      The number of samples per bin.
+/// @return A pair of the mass-shape values and the corresponding mass samples.
+std::pair<std::vector<std::complex<double>>, std::vector<double>>
+binned_mass_shape(std::function<std::complex<double>(double)> mass_shape,
+                  const MassRangePartition& mass_range_partition,
+                  size_t samples_per_bin);
+
+/// @brief Return the values of the mass shape on the low edges of the partition.
+/// @param mass_shape The mass shape one wants to evaluate.
+/// @param mass_range_partition The mass partition to sample the mass shape.
+inline std::vector<std::complex<double>> binned_mass_shape(std::function<std::complex<double>(double)> mass_shape,
+                                                           const MassRangePartition& mass_range_partition)
+{ return binned_mass_shape(mass_shape, mass_range_partition, 1).first; }
 
 #endif

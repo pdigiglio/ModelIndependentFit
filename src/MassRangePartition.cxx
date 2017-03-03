@@ -15,6 +15,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iomanip>
+#include <iostream>
 #include <iterator>
 #include <utility>
 #include <vector>
@@ -87,8 +89,16 @@ MassRangePartition::MassRangePartition(const std::vector<region>& r) noexcept :
     // Check if it's sorted.
     assert(std::is_sorted(std::begin(massPartition()), std::end(massPartition())));
     assert(numberOfBins() + 1 == massPartition().size());
-}
 
+#ifndef NDEBUG
+    for (size_t i = 0; i < numberOfBins(); ++ i) {
+        std::cout << "bin(" << std::setw(2) << std::right << i << ") = ["
+                            << std::setw(8) << std::left << massPartition()[i]
+                  << " , "  << std::setw(8) << std::left << massPartition()[i+1]
+                  << ")" << std::endl;
+    }
+#endif
+}
 
 std::vector<double> bins(const double x, const MassRangePartition& mrp) {
     if (x < 0. or x > 1.)
@@ -104,4 +114,30 @@ std::vector<double> bins(const double x, const MassRangePartition& mrp) {
     }
 
     return p;
+}
+
+std::pair<std::vector<std::complex<double>>, std::vector<double>>
+binned_mass_shape(std::function<std::complex<double>(double)> mass_shape,
+                  const MassRangePartition& mrp,
+                  size_t samples_per_bin) {
+
+    std::vector<std::complex<double>> binned_ms;
+    binned_ms.reserve(samples_per_bin * mrp.numberOfBins());
+
+    std::vector<double> sample_points;
+    sample_points.reserve(samples_per_bin * mrp.numberOfBins());
+
+    for (size_t i = 0; i < mrp.numberOfBins(); ++ i) {
+        // Bin low edge.
+        const auto ble = mrp.massPartition()[i];
+        // Sampling step.
+        const auto ss  = (mrp.massPartition()[i + 1] - ble) / samples_per_bin;
+
+        for (size_t s = 0; s < samples_per_bin; ++ s) {
+            sample_points.emplace_back(ble + s * ss);
+            binned_ms.emplace_back(mass_shape(sample_points.back() * sample_points.back()));
+        }
+    }
+
+    return std::make_pair(binned_ms, sample_points);
 }

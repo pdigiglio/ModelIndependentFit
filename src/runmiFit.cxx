@@ -8,8 +8,10 @@
 #include <BAT/BCLog.h>
 #include <BAT/BCAux.h>
 
-#include "Fit.h"
-#include "model/model_independent_d3pi.h"
+#include "fit_utilities.h"
+
+//#include "Fit.h"
+//#include "model/model_independent_d3pi.h"
 
 #include <iostream>
 #include <memory>
@@ -24,13 +26,13 @@ int main(int argc, const char *argv[])
         std::abort();
     }
 
-    const auto fit = create_fit(argv[1], argv[2], argv[3]);
+    const auto fit = create_fit<RTPlotMIFitModel>(argv[1], argv[2], argv[3]);
 
     // set nicer style for drawing than the ROOT default
     BCAux::SetStyle();
 
     // open log file
-    BCLog::OpenLog(fit->logFileName(), BCLog::detail, BCLog::detail);
+    BCLog::OpenLog(log_file_name(*fit), BCLog::debug, BCLog::debug);
 
     // set precision
     fit->SetPrecision(BCEngineMCMC::kMedium);

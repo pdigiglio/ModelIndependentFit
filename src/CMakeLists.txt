@@ -6,27 +6,34 @@ include_directories(${BAT_INCLUDE_DIRS}
                     ${YAP_SOURCE_DIR}/include
                     ${PARENT_SOURCE_DIR}/include)
 
-set(sources
+set(common
     CachedIntegrator.cxx
-    DataGenerator.cxx
-    Fit.cxx
     FitIntegrator.cxx
+    OnTheFlyIntegrator.cxx
     FitModel.cxx
-    FitResultFileIterator.cxx
-    FittedFreeAmplitude.cxx
+    ModelIndependentFitModel.cxx
+    RealTimeParameterPlot.cxx
+    RTPlotMIFitModel.cxx
     MassBin.cxx
     MassRangePartition.cxx
-    ModelIndependentFitModel.cxx
-    OnTheFlyIntegrator.cxx
-    RealTimeParameterPlot.cxx
-    RealTimePlotModelIndependentFitModel.cxx
+    parallelism.cxx
+    parameter_handling.cxx
+    FitResultFileIterator.cxx
+    FittedFreeAmplitude.cxx
+    FreedWave.cxx
+    KnownMassShapeFreedWave.cxx)
+
+set(fit Fit.cxx)
+set(data_generator DataGenerator.cxx)
+
+set(root
     RootFileHandler.cxx
     RootFitData.cxx
-    TTreeHandler.cxx
-    parallelism.cxx)
+    TTreeHandler.cxx)
+
 
 # Add the models
-set(sources ${sources}
+set(models
     model/model_independent_d3pi.cxx
     model/d3pi.cxx)
 
@@ -42,14 +49,12 @@ add_custom_target(link-plot-script
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${PARENT_SOURCE_DIR}/plot_result.plt
                                                ${CMAKE_CURRENT_BINARY_DIR}/output/plot_result.plt)
 
-set(programs runmiFit runMIGen)
+add_executable(runmiFit EXCLUDE_FROM_ALL runmiFit.cxx ${common} ${fit} ${root} ${models})
+target_link_libraries(runmiFit ${ROOT_LIBARIES} ${BAT_LIBRARIES} YAP)
 
-foreach(program ${programs})
-    add_executable(${program} EXCLUDE_FROM_ALL ${program}.cxx ${sources})
-    target_link_libraries(${program} ${ROOT_LIBARIES} ${BAT_LIBRARIES} YAP)
-endforeach(program)
+add_executable(runMIGen EXCLUDE_FROM_ALL runMIGen.cxx ${common} ${data_generator} ${models})
+target_link_libraries(runMIGen ${ROOT_LIBARIES} ${BAT_LIBRARIES} YAP)
 
-# Compile the root conversion utility
 add_executable(root_to_txt EXCLUDE_FROM_ALL root_to_txt.cxx)
 target_link_libraries(root_to_txt ${ROOT_LIBRARIES})
 

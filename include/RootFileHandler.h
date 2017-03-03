@@ -19,61 +19,61 @@
 #include <memory>
 #include <string>
 
-/// Manages the input .root data file and provides convenience functions to access its branches.
+/// @defgroup Root
+/// @brief Wrappers for ROOT classes with error handling and convenience functions.
+
+/// @ingroup Root
+/// @brief Manages the input `.root` data file.
 class RootFileHandler {
 public:
     /// @brief Constructor.
     /// @param file_path  The path of the input .root file.
     /// @param file_name  The input .root file name (relative to the path).
+    /// @param model_name The name of the model (for fecthing the branches).
     explicit RootFileHandler(const char* file_path,
-                             const char* file_name); 
+                             const char* file_name,
+                             const char* model_name); 
 
     /// Destructor.
     ~RootFileHandler();
 
-    /// Returns the name of the input .root file.
+    /// Return the name of the input `.root` file.
     const std::string& fileName() const noexcept
     { return FileName_; }
 
-    const std::unique_ptr<TTreeHandler>& parameterTree() const noexcept
-    { return ParameterTree_; }
-
-    const std::unique_ptr<TTreeHandler>& mcmcTree() const noexcept
-    { return MCMCTree_; }
-
-    /// @brief Return the name of the data TTree.
-    /// @todo try not to hard-code branch names.
-    const std::string mcmcTreeName() const
-    { return "f0_f01500_mcmc"; }
-//    { return "D3PI_" + ModelName_ + "_RESONANCE_mcmc"; }
-
-    /// @brief Return the name of the parameter TTree.
-    /// @todo try not to hard-code branch names.
-    const std::string parameterTreeName() const
-    { return "f0_f01500_parameters"; }
-//    { return "D3PI_" + ModelName_ + "_RESONANCE_parameters"; }
+    /// Return the path where the input `.root` file is contained.
+    const std::string& path() const noexcept
+    { return Path_; }
 
     /// Return the ROOT file.
     const std::unique_ptr<TFile>& file() const noexcept
     { return File_; }
 
-    /// Return the path where the input .root file is contained.
-    const std::string& path() const noexcept
-    { return Path_; }
-private:
-    /// The path where the input .root file is contained.
-    const std::string Path_;
-    /// The input file name.
-    const std::string FileName_;
+    /// Return the model name in the ROOT file.
+    const std::string& modelName() const noexcept
+    { return ModelName_; }
 
-    /// Pointer to the input .root data file.
+    /// Return the Markov-chain monte-carlo data tree.
+    const std::unique_ptr<TTreeHandler>& mcmcTree() const noexcept
+    { return MCMCTree_; }
+
+private:
+    /// The path where the input `.root` file is contained.
+    std::string Path_;
+    /// The input file name.
+    std::string FileName_;
+    /// The model name.
+    std::string ModelName_;
+    /// Pointer to the input `.root` data file.
     std::unique_ptr<TFile> File_;
 
     /// Pointer to the Monte-Carlo data generated throguh Markov chains.
     std::unique_ptr<TTreeHandler> MCMCTree_;
-
-    /// (?)
-    std::unique_ptr<TTreeHandler> ParameterTree_;
 };
+
+/// @brief Return the name of the Markov-chain monte-carlo data `TTree`.
+/// @param rfh The root file handled to take the model name from.
+inline std::string mcmc_tree_name(const RootFileHandler& rfh)
+{ return rfh.modelName() + "_mcmc"; }
 
 #endif
